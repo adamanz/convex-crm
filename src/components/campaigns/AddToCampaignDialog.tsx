@@ -105,16 +105,12 @@ export function AddToCampaignDialog({
         source: source || undefined,
       });
 
-      if (result.added > 0) {
+      if (result.addedCount > 0) {
         toast.success(
-          `Added ${result.added} contact${result.added > 1 ? "s" : ""} to campaign`
+          `Added ${result.addedCount} contact${result.addedCount > 1 ? "s" : ""} to campaign`
         );
-      }
-
-      if (result.skipped > 0) {
-        toast.info(
-          `${result.skipped} contact${result.skipped > 1 ? "s were" : " was"} already in the campaign`
-        );
+      } else {
+        toast.info("No new contacts were added (may already be in campaign)");
       }
 
       onSuccess?.();

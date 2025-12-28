@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -12,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -35,23 +36,37 @@ import {
   FileText,
   ListTodo,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 type ActivityType = "task" | "call" | "email" | "meeting" | "note" | "all";
 
 export default function ActivitiesPage() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<ActivityType>("all");
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<string>("all");
-  const [cursor, setCursor] = useState<number | undefined>(undefined);
+
+  // Handle quick add from URL parameter
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      const type = searchParams.get("type") || "task";
+      if (type === "note") {
+        setIsNoteDialogOpen(true);
+      } else {
+        setIsTaskDialogOpen(true);
+      }
+      window.history.replaceState({}, "", pathname);
+    }
+  }, [searchParams, pathname]);
 
   // Fetch activities based on filters
   const activitiesData = useQuery(api.activities.feed, {
     type: activeTab === "all" ? undefined : activeTab,
     limit: 50,
-    cursor,
   });
 
   // Fetch upcoming tasks for sidebar
@@ -63,14 +78,15 @@ export default function ActivitiesPage() {
   // Mutations
   const completeTask = useMutation(api.activities.complete);
   const reopenTask = useMutation(api.activities.reopen);
+  const deleteActivity = useMutation(api.activities.delete_);
 
   const handleTaskComplete = useCallback(
     async (id: string, completed: boolean) => {
       try {
         if (completed) {
-          await completeTask({ id: id as any });
+          await completeTask({ id: id as Id<"activities"> });
         } else {
-          await reopenTask({ id: id as any });
+          await reopenTask({ id: id as Id<"activities"> });
         }
       } catch (error) {
         console.error("Failed to update task:", error);
@@ -79,13 +95,19 @@ export default function ActivitiesPage() {
     [completeTask, reopenTask]
   );
 
-  const handleLoadMore = useCallback(() => {
-    if (activitiesData?.nextCursor) {
-      setCursor(activitiesData.nextCursor);
-    }
-  }, [activitiesData?.nextCursor]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        await deleteActivity({ id: id as Id<"activities"> });
+      } catch (error) {
+        console.error("Failed to delete activity:", error);
+      }
+    },
+    [deleteActivity]
+  );
 
-  const getDateFilteredActivities = useCallback(() => {
+  // Apply date filtering in memory
+  const filteredActivities = useMemo(() => {
     if (!activitiesData?.items) return [];
 
     const now = Date.now();
@@ -108,8 +130,6 @@ export default function ActivitiesPage() {
     });
   }, [activitiesData?.items, dateFilter]);
 
-  const filteredActivities = getDateFilteredActivities();
-
   const activityTabs = [
     { value: "all", label: "All", icon: ListTodo },
     { value: "task", label: "Tasks", icon: CheckSquare },
@@ -125,7 +145,7 @@ export default function ActivitiesPage() {
       <div className="flex-1 overflow-auto">
         <div className="mx-auto max-w-5xl px-6 py-8">
           {/* Page Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                 Activities
@@ -139,7 +159,8 @@ export default function ActivitiesPage() {
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
                     <FileText className="mr-2 h-4 w-4" />
-                    Add Note
+                    <span className="hidden sm:inline">Add Note</span>
+                    <span className="sm:hidden">Note</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
@@ -154,7 +175,8 @@ export default function ActivitiesPage() {
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Task
+                    <span className="hidden sm:inline">Add Task</span>
+                    <span className="sm:hidden">Task</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg">
@@ -168,7 +190,7 @@ export default function ActivitiesPage() {
           </div>
 
           {/* Filters Row */}
-          <div className="mb-6 flex items-center gap-4">
+          <div className="mb-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-zinc-400" />
               <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
@@ -177,7 +199,7 @@ export default function ActivitiesPage() {
             </div>
 
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[160px]">
                 <Calendar className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Date range" />
               </SelectTrigger>
@@ -188,6 +210,14 @@ export default function ActivitiesPage() {
                 <SelectItem value="month">This month</SelectItem>
               </SelectContent>
             </Select>
+
+            {filteredActivities.length > 0 && (
+              <div className="ml-auto flex items-center gap-2 text-sm text-zinc-500">
+                <span>
+                  {filteredActivities.length} {filteredActivities.length === 1 ? "activity" : "activities"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Activity Tabs */}
@@ -195,7 +225,6 @@ export default function ActivitiesPage() {
             value={activeTab}
             onValueChange={(value) => {
               setActiveTab(value as ActivityType);
-              setCursor(undefined);
             }}
             className="w-full"
           >
@@ -206,7 +235,7 @@ export default function ActivitiesPage() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2"
                   >
                     <Icon className="h-4 w-4" />
                     <span className="hidden sm:inline">{tab.label}</span>
@@ -262,19 +291,11 @@ export default function ActivitiesPage() {
                         key={activity._id}
                         activity={activity}
                         onTaskComplete={handleTaskComplete}
+                        onDelete={handleDelete}
                         isLast={index === filteredActivities.length - 1}
                       />
                     ))}
                   </div>
-
-                  {/* Load More */}
-                  {activitiesData?.hasMore && (
-                    <div className="mt-8 flex justify-center">
-                      <Button variant="outline" onClick={handleLoadMore}>
-                        Load more activities
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </TabsContent>
             ))}

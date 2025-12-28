@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -40,10 +40,20 @@ type DealStatus = "open" | "won" | "lost";
 
 export default function DealsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
   const [selectedPipelineId, setSelectedPipelineId] = useState<Id<"pipelines"> | null>(null);
+
+  // Handle quick add from URL parameter
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setIsFormOpen(true);
+      window.history.replaceState({}, "", pathname);
+    }
+  }, [searchParams, pathname]);
 
   // Quick filter states
   const [selectedOwnerId, setSelectedOwnerId] = useState<Id<"users"> | null>(null);

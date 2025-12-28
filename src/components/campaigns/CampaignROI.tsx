@@ -247,8 +247,8 @@ export function CampaignROI({ campaignId }: CampaignROIProps) {
                       border: "1px solid var(--border)",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: number) =>
-                      formatCurrency(value, campaign.currency)
+                    formatter={(value) =>
+                      typeof value === 'number' ? formatCurrency(value, campaign.currency) : String(value ?? '')
                     }
                   />
                   <Legend />

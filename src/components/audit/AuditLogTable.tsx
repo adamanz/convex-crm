@@ -3,7 +3,7 @@
 import * as React from "react";
 import { usePaginatedQuery } from "convex/react";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner, TableSkeleton } from "@/components/shared/loading-state";
@@ -46,7 +46,6 @@ export function AuditLogTable({
   } = usePaginatedQuery(
     api.auditLog.list,
     {
-      paginationOpts: { numItems: ITEMS_PER_PAGE },
       filter: queryFilter,
     },
     { initialNumItems: ITEMS_PER_PAGE }
@@ -63,7 +62,6 @@ export function AuditLogTable({
     ? usePaginatedQuery(
         api.auditLog.list,
         {
-          paginationOpts: { numItems: ITEMS_PER_PAGE },
           filter: { entityType: entityType || undefined },
         },
         { initialNumItems: ITEMS_PER_PAGE }
@@ -144,7 +142,7 @@ export function AuditLogTable({
       )}
 
       {/* Load more */}
-      {displayStatus === "CanLoadMore" && (
+      {(displayStatus === "CanLoadMore" || displayStatus === "LoadingMore") && (
         <div className="flex justify-center pt-4">
           <Button
             variant="outline"
@@ -194,7 +192,6 @@ export function AuditLogTableCompact({
   const { results, status, loadMore } = usePaginatedQuery(
     api.auditLog.list,
     {
-      paginationOpts: { numItems: limit },
       filter: { entityType },
     },
     { initialNumItems: limit }

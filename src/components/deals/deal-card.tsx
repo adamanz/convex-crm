@@ -6,7 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Calendar, Building2 } from "lucide-react";
 import { Id } from "../../../convex/_generated/dataModel";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export interface DealCardData {
   _id: Id<"deals">;
@@ -117,12 +117,12 @@ export function DealCard({ deal, isDragging, onClick }: DealCardProps) {
 
           {/* Owner Avatar */}
           {deal.owner && (
-            <Avatar
-              src={deal.owner.avatarUrl}
-              fallback={getInitials(deal.owner.firstName, deal.owner.lastName)}
-              size="sm"
-              className="ml-auto"
-            />
+            <Avatar className="ml-auto h-6 w-6">
+              <AvatarImage src={deal.owner.avatarUrl} />
+              <AvatarFallback className="text-xs">
+                {getInitials(deal.owner.firstName, deal.owner.lastName)}
+              </AvatarFallback>
+            </Avatar>
           )}
         </div>
       </div>

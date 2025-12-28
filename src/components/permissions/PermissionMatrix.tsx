@@ -136,9 +136,12 @@ export function PermissionMatrix({ className }: PermissionMatrixProps) {
     );
   }
 
+  // Cast matrix rows to MatrixRow type (API returns string, we know they're PermissionLevel)
+  const typedMatrix = matrix as unknown as MatrixRow[];
+
   const hasChanges = pendingChanges.size > 0;
-  const standardFields = matrix.filter((row) => !row.isCustom);
-  const customFields = matrix.filter((row) => row.isCustom);
+  const standardFields = typedMatrix.filter((row) => !row.isCustom);
+  const customFields = typedMatrix.filter((row) => row.isCustom);
 
   return (
     <div className={cn("space-y-6", className)}>

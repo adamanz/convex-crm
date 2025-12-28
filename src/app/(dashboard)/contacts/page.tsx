@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -18,6 +18,7 @@ import {
   Mail,
   Phone,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,8 +33,25 @@ import { toast } from "sonner";
 
 type FilterType = "all" | "my" | "recent";
 
+function ContactsPageLoading() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function ContactsPage() {
+  return (
+    <Suspense fallback={<ContactsPageLoading />}>
+      <ContactsPageContent />
+    </Suspense>
+  );
+}
+
+function ContactsPageContent() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const smartListId = searchParams.get("smartList");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +59,14 @@ export default function ContactsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showSmartListBuilder, setShowSmartListBuilder] = useState(false);
   const [editSmartListId, setEditSmartListId] = useState<string | undefined>();
+
+  // Handle quick add from URL parameter
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setIsAddDialogOpen(true);
+      window.history.replaceState({}, "", pathname);
+    }
+  }, [searchParams, pathname]);
 
   // Mutations
   const refreshCount = useMutation(api.smartLists.refreshCount);
@@ -71,7 +97,8 @@ export default function ContactsPage() {
   // Determine which contacts to display
   const contacts = useMemo(() => {
     if (smartListId && smartListMembers) {
-      return smartListMembers.members;
+      // Smart list members are typed generically but we know contacts page only shows contact smart lists
+      return smartListMembers.members as typeof contactsResult extends { page: infer P } ? P : never;
     }
     if (searchQuery.length > 0 && searchResults) {
       return searchResults;

@@ -117,13 +117,12 @@ export default function LeaderboardDetailPage({
                 Current Rankings
               </h2>
               <p className="text-sm text-zinc-500 mt-1">
-                {leaderboard.topUsers.length} participants ranked
+                {leaderboard.entries.length} participants ranked
               </p>
             </div>
             <LeaderboardTable
-              leaderboardId={leaderboardId}
-              metric={leaderboard.metric as any}
-              showBadges
+              entries={leaderboard.entries}
+              metric={leaderboard.metric as "deals_won" | "revenue" | "activities" | "calls" | "emails" | "new_contacts"}
             />
           </div>
         </div>
@@ -131,7 +130,7 @@ export default function LeaderboardDetailPage({
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Top Performer Highlight */}
-          {leaderboard.topUsers[0] && (
+          {leaderboard.entries[0] && (
             <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50 p-6 dark:border-amber-900/50 dark:from-amber-950/30 dark:to-amber-900/20">
               <div className="flex items-center gap-2 mb-4">
                 <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
@@ -141,19 +140,19 @@ export default function LeaderboardDetailPage({
               </div>
               <div className="flex items-center gap-4">
                 <div className="h-14 w-14 rounded-full bg-amber-500 flex items-center justify-center text-white text-lg font-bold">
-                  {leaderboard.topUsers[0].user?.firstName?.[0]}
-                  {leaderboard.topUsers[0].user?.lastName?.[0]}
+                  {leaderboard.entries[0].user?.firstName?.[0]}
+                  {leaderboard.entries[0].user?.lastName?.[0]}
                 </div>
                 <div>
                   <p className="font-semibold text-amber-900 dark:text-amber-100">
-                    {leaderboard.topUsers[0].user?.firstName}{" "}
-                    {leaderboard.topUsers[0].user?.lastName}
+                    {leaderboard.entries[0].user?.firstName}{" "}
+                    {leaderboard.entries[0].user?.lastName}
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">
                     Leading with{" "}
                     {leaderboard.metric === "revenue"
-                      ? `$${leaderboard.topUsers[0].value.toLocaleString()}`
-                      : leaderboard.topUsers[0].value.toLocaleString()}{" "}
+                      ? `$${leaderboard.entries[0].value.toLocaleString()}`
+                      : leaderboard.entries[0].value.toLocaleString()}{" "}
                     {metricLabels[leaderboard.metric]?.toLowerCase()}
                   </p>
                 </div>
@@ -170,7 +169,7 @@ export default function LeaderboardDetailPage({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-zinc-500">Total Participants</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                  {leaderboard.topUsers.length}
+                  {leaderboard.entries.length}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -179,10 +178,10 @@ export default function LeaderboardDetailPage({
                 </span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-50">
                   {leaderboard.metric === "revenue"
-                    ? `$${leaderboard.topUsers
+                    ? `$${leaderboard.entries
                         .reduce((sum, u) => sum + u.value, 0)
                         .toLocaleString()}`
-                    : leaderboard.topUsers
+                    : leaderboard.entries
                         .reduce((sum, u) => sum + u.value, 0)
                         .toLocaleString()}
                 </span>
@@ -190,15 +189,15 @@ export default function LeaderboardDetailPage({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-zinc-500">Average per Person</span>
                 <span className="font-medium text-zinc-900 dark:text-zinc-50">
-                  {leaderboard.topUsers.length > 0
+                  {leaderboard.entries.length > 0
                     ? leaderboard.metric === "revenue"
                       ? `$${Math.round(
-                          leaderboard.topUsers.reduce((sum, u) => sum + u.value, 0) /
-                            leaderboard.topUsers.length
+                          leaderboard.entries.reduce((sum, u) => sum + u.value, 0) /
+                            leaderboard.entries.length
                         ).toLocaleString()}`
                       : Math.round(
-                          leaderboard.topUsers.reduce((sum, u) => sum + u.value, 0) /
-                            leaderboard.topUsers.length
+                          leaderboard.entries.reduce((sum, u) => sum + u.value, 0) /
+                            leaderboard.entries.length
                         ).toLocaleString()
                     : "0"}
                 </span>

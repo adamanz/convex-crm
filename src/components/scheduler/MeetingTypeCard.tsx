@@ -1,6 +1,6 @@
 "use client";
 
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc } from "../../../convex/_generated/dataModel";
 import { Clock, MapPin, Link2, MoreVertical, Copy, ExternalLink, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

@@ -255,15 +255,15 @@ export function CampaignForm({
               <div className="space-y-2">
                 <Label>Start Date</Label>
                 <DatePicker
-                  date={formData.startDate}
-                  onSelect={(date) => updateField("startDate", date)}
+                  value={formData.startDate}
+                  onChange={(date) => updateField("startDate", date)}
                 />
               </div>
               <div className="space-y-2">
                 <Label>End Date</Label>
                 <DatePicker
-                  date={formData.endDate}
-                  onSelect={(date) => updateField("endDate", date)}
+                  value={formData.endDate}
+                  onChange={(date) => updateField("endDate", date)}
                 />
               </div>
             </div>

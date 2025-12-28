@@ -302,15 +302,13 @@ export function CallUploader({
 
       // Step 3: Create recording record
       setStatus("processing");
+      // Build the recording URL from storage ID
+      const recordingUrl = `https://convex.cloud/api/storage/${storageId}`;
       const recordingId = await uploadRecording({
+        recordingUrl,
+        duration: fileInfo.duration || 0,
         activityId,
         storageId,
-        duration: fileInfo.duration || 0,
-        fileSize: fileInfo.size,
-        mimeType: fileInfo.type,
-        callerPhone: callerPhone || undefined,
-        receiverPhone: receiverPhone || undefined,
-        provider,
       });
 
       setProgress(100);
@@ -357,7 +355,7 @@ export function CallUploader({
             <FilePreview
               fileInfo={fileInfo}
               onRemove={handleRemoveFile}
-              disabled={status === "uploading" || status === "processing"}
+              disabled={false}
             />
             <Button onClick={handleUpload} className="w-full">
               <Upload className="h-4 w-4 mr-2" />

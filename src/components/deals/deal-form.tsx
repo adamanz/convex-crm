@@ -44,15 +44,18 @@ import { cn } from "@/lib/utils";
 const dealFormSchema = z.object({
   name: z.string().min(1, "Deal name is required"),
   amount: z.number().min(0, "Amount must be positive").optional(),
-  currency: z.string().optional().default("USD"),
+  currency: z.string().default("USD"),
   companyId: z.string().optional(),
-  contactIds: z.array(z.string()).optional().default([]),
+  contactIds: z.array(z.string()).default([]),
   expectedCloseDate: z.string().optional(),
   stageId: z.string().min(1, "Stage is required"),
   ownerId: z.string().optional(),
 });
 
-export type DealFormData = z.infer<typeof dealFormSchema>;
+// Use z.input for form data type to match what react-hook-form expects before parsing
+export type DealFormData = z.input<typeof dealFormSchema>;
+// Output type after validation with defaults applied
+export type DealFormOutput = z.output<typeof dealFormSchema>;
 
 interface Stage {
   id: string;
@@ -157,7 +160,7 @@ export function DealForm({
 
   const selectedCompany = companies.find((c) => c._id === selectedCompanyId);
   const selectedContacts = contacts.filter((c) =>
-    selectedContactIds.includes(c._id)
+    (selectedContactIds ?? []).includes(c._id)
   );
   const selectedOwner = users.find((u) => u._id === selectedOwnerId);
 
@@ -174,18 +177,19 @@ export function DealForm({
   const handleRemoveContact = (contactId: string) => {
     setValue(
       "contactIds",
-      selectedContactIds.filter((id) => id !== contactId)
+      (selectedContactIds ?? []).filter((id) => id !== contactId)
     );
   };
 
   const handleToggleContact = (contactId: string) => {
-    if (selectedContactIds.includes(contactId)) {
+    const ids = selectedContactIds ?? [];
+    if (ids.includes(contactId)) {
       setValue(
         "contactIds",
-        selectedContactIds.filter((id) => id !== contactId)
+        ids.filter((id) => id !== contactId)
       );
     } else {
-      setValue("contactIds", [...selectedContactIds, contactId]);
+      setValue("contactIds", [...ids, contactId]);
     }
   };
 
@@ -390,7 +394,7 @@ export function DealForm({
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedContactIds.includes(contact._id)
+                              (selectedContactIds ?? []).includes(contact._id)
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}

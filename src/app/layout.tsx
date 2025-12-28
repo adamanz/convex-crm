@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ConvexClientProvider } from "@/components/providers/convex-provider";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -31,20 +29,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <ConvexClientProvider>
-          <div className="flex h-screen overflow-hidden">
-            <AppSidebar />
-            <main className="flex-1 overflow-auto">
-              {children}
-            </main>
-          </div>
-          <Toaster
-            position="top-right"
-            theme="dark"
-            richColors
-            closeButton
-          />
-        </ConvexClientProvider>
+        {children}
+        <Toaster
+          position="top-right"
+          theme="dark"
+          richColors
+          closeButton
+        />
       </body>
     </html>
   );

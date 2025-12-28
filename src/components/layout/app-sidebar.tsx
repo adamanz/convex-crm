@@ -36,6 +36,7 @@ import {
   ChevronDown,
   FileText,
   Phone,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShortcuts } from "@/components/shortcuts";
@@ -67,7 +68,13 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user, onSignOut }: AppSidebarProps) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sidebar-collapsed");
+      return saved === "true";
+    }
+    return false;
+  });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     "CRM Objects": true,
@@ -76,6 +83,11 @@ export function AppSidebar({ user, onSignOut }: AppSidebarProps) {
     "Configuration": false,
   });
   const { openCommandPalette } = useShortcuts();
+
+  // Persist sidebar collapse state to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(isCollapsed));
+  }, [isCollapsed]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -318,6 +330,68 @@ export function AppSidebar({ user, onSignOut }: AppSidebarProps) {
           );
         })}
       </nav>
+
+      {/* Quick Actions */}
+      <div className={cn(
+        "border-t border-zinc-100 p-3 dark:border-zinc-800/50",
+        isCollapsed && "px-2"
+      )}>
+        {!isCollapsed && (
+          <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+            Quick Actions
+          </div>
+        )}
+        <div className="space-y-1">
+          <Link
+            href="/contacts?new=true"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
+              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Add Contact" : undefined}
+          >
+            <Plus className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+            {!isCollapsed && <span>Add Contact</span>}
+          </Link>
+          <Link
+            href="/companies?new=true"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
+              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Add Company" : undefined}
+          >
+            <Plus className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+            {!isCollapsed && <span>Add Company</span>}
+          </Link>
+          <Link
+            href="/deals?new=true"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
+              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Add Deal" : undefined}
+          >
+            <Plus className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+            {!isCollapsed && <span>Add Deal</span>}
+          </Link>
+          <Link
+            href="/activities?new=true"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
+              "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100",
+              isCollapsed && "justify-center px-2"
+            )}
+            title={isCollapsed ? "Add Activity" : undefined}
+          >
+            <Plus className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+            {!isCollapsed && <span>Add Activity</span>}
+          </Link>
+        </div>
+      </div>
 
       {/* Settings Link */}
       <div className={cn(

@@ -10,6 +10,7 @@
 
 import type * as activities from "../activities.js";
 import type * as ai from "../ai.js";
+import type * as analytics from "../analytics.js";
 import type * as api_ from "../api.js";
 import type * as approvals from "../approvals.js";
 import type * as auditLog from "../auditLog.js";
@@ -30,6 +31,7 @@ import type * as documents from "../documents.js";
 import type * as duplicates from "../duplicates.js";
 import type * as email from "../email.js";
 import type * as export_ from "../export.js";
+import type * as files from "../files.js";
 import type * as forecasting from "../forecasting.js";
 import type * as goals from "../goals.js";
 import type * as help from "../help.js";
@@ -51,6 +53,7 @@ import type * as sendblue from "../sendblue.js";
 import type * as sequences from "../sequences.js";
 import type * as smartLists from "../smartLists.js";
 import type * as tags from "../tags.js";
+import type * as territories from "../territories.js";
 import type * as users from "../users.js";
 import type * as validation from "../validation.js";
 import type * as webForms from "../webForms.js";
@@ -66,6 +69,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
   ai: typeof ai;
+  analytics: typeof analytics;
   api: typeof api_;
   approvals: typeof approvals;
   auditLog: typeof auditLog;
@@ -86,6 +90,7 @@ declare const fullApi: ApiFromModules<{
   duplicates: typeof duplicates;
   email: typeof email;
   export: typeof export_;
+  files: typeof files;
   forecasting: typeof forecasting;
   goals: typeof goals;
   help: typeof help;
@@ -107,6 +112,7 @@ declare const fullApi: ApiFromModules<{
   sequences: typeof sequences;
   smartLists: typeof smartLists;
   tags: typeof tags;
+  territories: typeof territories;
   users: typeof users;
   validation: typeof validation;
   webForms: typeof webForms;

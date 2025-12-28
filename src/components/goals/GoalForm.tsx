@@ -92,7 +92,7 @@ export function GoalForm({ open, onOpenChange, goal, onSuccess }: GoalFormProps)
 
   const createGoal = useMutation(api.goals.create);
   const updateGoal = useMutation(api.goals.update);
-  const users = useQuery(api.users.list);
+  const users = useQuery(api.users.list, { includeInactive: false });
 
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
@@ -300,8 +300,8 @@ export function GoalForm({ open, onOpenChange, goal, onSuccess }: GoalFormProps)
                     <FormLabel>Start Date</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value}
-                        onDateChange={field.onChange}
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -317,8 +317,8 @@ export function GoalForm({ open, onOpenChange, goal, onSuccess }: GoalFormProps)
                     <FormLabel>End Date</FormLabel>
                     <FormControl>
                       <DatePicker
-                        date={field.value}
-                        onDateChange={field.onChange}
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

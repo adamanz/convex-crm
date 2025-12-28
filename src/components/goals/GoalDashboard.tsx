@@ -80,7 +80,9 @@ function StatCard({
           className="flex h-10 w-10 items-center justify-center rounded-lg"
           style={{ backgroundColor: `${color}15` }}
         >
-          <Icon className="h-5 w-5" style={{ color }} />
+          <span style={{ color }}>
+            <Icon className="h-5 w-5" />
+          </span>
         </div>
         <div>
           <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
@@ -238,7 +240,7 @@ export function GoalDashboard({ userId, className }: GoalDashboardProps) {
                     borderRadius: "8px",
                     color: "#fafafa",
                   }}
-                  formatter={(value: number) => [`${value}%`, "Progress"]}
+                  formatter={(value) => [`${value ?? 0}%`, "Progress"]}
                 />
                 <Bar dataKey="progress" radius={[0, 4, 4, 0]}>
                   {typeData.map((entry, index) => (

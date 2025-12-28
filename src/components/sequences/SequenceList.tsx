@@ -297,8 +297,7 @@ function SequenceCard({
           <div className="flex items-center gap-2">
             <Switch
               checked={sequence.isActive}
-              onCheckedChange={(e) => {
-                e.stopPropagation?.();
+              onCheckedChange={() => {
                 onToggleActive();
               }}
               onClick={(e) => e.stopPropagation()}

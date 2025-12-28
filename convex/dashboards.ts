@@ -412,6 +412,8 @@ export const updateWidget = mutation({
   args: {
     widgetId: v.id("dashboardWidgets"),
     title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    refreshInterval: v.optional(v.number()),
     config: v.optional(
       v.object({
         dataSource: v.optional(v.string()),
@@ -453,6 +455,8 @@ export const updateWidget = mutation({
     // Build update object
     const updateObj: Record<string, unknown> = { updatedAt: now };
     if (updates.title !== undefined) updateObj.title = updates.title;
+    if (updates.description !== undefined) updateObj.description = updates.description;
+    if (updates.refreshInterval !== undefined) updateObj.refreshInterval = updates.refreshInterval;
     if (updates.config !== undefined) updateObj.config = updates.config;
     if (updates.position !== undefined) updateObj.position = updates.position;
 

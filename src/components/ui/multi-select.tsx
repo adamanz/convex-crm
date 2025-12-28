@@ -356,9 +356,10 @@ function MultiSelect({
                   <CommandGroup>
                     {groupedOptions.ungrouped.map((option) => {
                       const isSelected = value.includes(option.value);
-                      const isDisabled =
+                      const isDisabled = Boolean(
                         option.disabled ||
-                        (maxItems && !isSelected && value.length >= maxItems);
+                        (maxItems && !isSelected && value.length >= maxItems)
+                      );
 
                       return (
                         <CommandItem
@@ -382,9 +383,10 @@ function MultiSelect({
                     <CommandGroup key={groupName} heading={groupName}>
                       {groupOptions.map((option) => {
                         const isSelected = value.includes(option.value);
-                        const isDisabled =
+                        const isDisabled = Boolean(
                           option.disabled ||
-                          (maxItems && !isSelected && value.length >= maxItems);
+                          (maxItems && !isSelected && value.length >= maxItems)
+                        );
 
                         return (
                           <CommandItem
@@ -486,7 +488,7 @@ function TagInput({
     }
   };
 
-  const showDropdown = open && (filteredSuggestions.length > 0 || (allowCreate && inputValue));
+  const showDropdown = open && (filteredSuggestions.length > 0 || Boolean(allowCreate && inputValue));
 
   return (
     <Popover open={showDropdown} onOpenChange={setOpen}>

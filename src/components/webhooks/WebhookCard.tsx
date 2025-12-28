@@ -56,7 +56,7 @@ interface WebhookCardProps {
     name: string;
     url: string;
     events: string[];
-    secret: string;
+    secret?: string;
     isActive: boolean;
     lastTriggeredAt?: number;
     failureCount: number;
@@ -361,7 +361,7 @@ export function WebhookCard({
                 <div className="flex-1 relative">
                   <input
                     type={showSecret ? "text" : "password"}
-                    value={newSecret || webhook.secret}
+                    value={newSecret || webhook.secret || ""}
                     readOnly
                     className="w-full px-3 py-2 pr-10 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 font-mono text-sm"
                   />
@@ -382,7 +382,7 @@ export function WebhookCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => copySecret(newSecret || webhook.secret)}
+                  onClick={() => copySecret(newSecret || webhook.secret || "")}
                 >
                   {copied ? (
                     <Check className="h-4 w-4" />

@@ -127,7 +127,7 @@ export function PipelineChart({
                   fill="hsl(var(--primary-foreground))"
                   stroke="none"
                   className="text-xs font-medium"
-                  formatter={(value: number) => formatCurrency(value, currency)}
+                  formatter={(value) => typeof value === 'number' ? formatCurrency(value, currency) : String(value ?? '')}
                 />
               </Funnel>
             </FunnelChart>

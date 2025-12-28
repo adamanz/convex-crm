@@ -251,7 +251,7 @@ export function MergeDialog({
           duplicateIds: duplicateIds as Id<"contacts">[],
           mergedData: {
             firstName: mergedData.firstName as string | undefined,
-            lastName: mergedData.lastName as string || records[0]?.lastName || "Unknown",
+            lastName: mergedData.lastName as string || (records[0] as ContactRecord)?.lastName || "Unknown",
             email: mergedData.email as string | undefined,
             phone: mergedData.phone as string | undefined,
             title: mergedData.title as string | undefined,
@@ -274,7 +274,7 @@ export function MergeDialog({
           primaryId: primaryId as Id<"companies">,
           duplicateIds: duplicateIds as Id<"companies">[],
           mergedData: {
-            name: mergedData.name as string || records[0]?.name || "Unknown",
+            name: mergedData.name as string || (records[0] as CompanyRecord)?.name || "Unknown",
             domain: mergedData.domain as string | undefined,
             industry: mergedData.industry as string | undefined,
             size: mergedData.size as string | undefined,
@@ -367,10 +367,10 @@ export function MergeDialog({
                 {fields.map((field) => {
                   const Icon = field.icon;
                   const valuesFromRecords = records
-                    .map((r) => ({
+                    .map((r, idx) => ({
                       id: r._id,
-                      value: r[field.key as keyof typeof r] as string | undefined,
-                      label: getRecordLabel(r, records.indexOf(r)),
+                      value: (r as unknown as Record<string, unknown>)[field.key] as string | undefined,
+                      label: getRecordLabel(r as ContactRecord | CompanyRecord, idx),
                     }))
                     .filter((v) => v.value !== undefined && v.value !== null && v.value !== "");
 

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { Doc } from "./_generated/dataModel";
 
 // ============================================================================
@@ -11,10 +12,7 @@ import { Doc } from "./_generated/dataModel";
  */
 export const list = query({
   args: {
-    paginationOpts: v.object({
-      cursor: v.optional(v.string()),
-      numItems: v.number(),
-    }),
+    paginationOpts: paginationOptsValidator,
     filter: v.optional(
       v.object({
         userId: v.optional(v.id("users")),
@@ -46,7 +44,7 @@ export const list = query({
 
     // Get paginated results in descending order (most recent first)
     const results = await logQuery.order("desc").paginate({
-      cursor: (paginationOpts.cursor ?? null) as string | null,
+      cursor: paginationOpts.cursor,
       numItems: paginationOpts.numItems,
     });
 

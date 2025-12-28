@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ListPageLayout, ListEmptyState } from "@/components/shared/list-page-layout";
@@ -34,9 +35,19 @@ import { cn } from "@/lib/utils";
 import { CompanyForm } from "@/components/companies/company-form";
 
 export default function CompaniesPage() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
+
+  // Handle quick add from URL parameter
+  useEffect(() => {
+    if (searchParams.get("new") === "true") {
+      setShowForm(true);
+      window.history.replaceState({}, "", pathname);
+    }
+  }, [searchParams, pathname]);
 
   // Fetch companies
   const companiesResult = useQuery(api.companies.list, {
@@ -81,13 +92,13 @@ export default function CompaniesPage() {
           icon: <Plus className="h-4 w-4 mr-1" />,
         }}
         customFilters={
-          <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+          <Select value={selectedIndustry || "all"} onValueChange={(val) => setSelectedIndustry(val === "all" ? "" : val)}>
             <SelectTrigger className="h-8 w-[160px] text-[12px]">
               <Filter className="mr-1.5 h-3.5 w-3.5 text-zinc-400" />
               <SelectValue placeholder="All industries" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All industries</SelectItem>
+              <SelectItem value="all">All industries</SelectItem>
               {industries?.map((industry) => (
                 <SelectItem key={industry} value={industry}>
                   {industry}

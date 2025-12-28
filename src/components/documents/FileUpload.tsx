@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import { useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import { Upload, X, File, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DocumentRelatedType, UploadProgress } from "@/types/documents";
 import { formatFileSize } from "@/types/documents";
-import { Id } from "@convex/_generated/dataModel";
+import { Id } from "../../../convex/_generated/dataModel";
 
 interface FileUploadProps {
   relatedToType?: DocumentRelatedType;

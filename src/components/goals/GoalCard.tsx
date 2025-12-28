@@ -118,7 +118,9 @@ export function GoalCard({
             className="flex h-10 w-10 items-center justify-center rounded-lg"
             style={{ backgroundColor: `${color}15` }}
           >
-            <Icon className="h-5 w-5" style={{ color }} />
+            <span style={{ color }}>
+              <Icon className="h-5 w-5" />
+            </span>
           </div>
           <div>
             <h3 className="font-medium text-zinc-900 dark:text-zinc-50">

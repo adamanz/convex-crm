@@ -1,16 +1,32 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { Doc, Id } from "../../../convex/_generated/dataModel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn, getRelativeTime, formatDate } from "@/lib/utils";
 import {
   CheckSquare,
@@ -25,6 +41,9 @@ import {
   Building2,
   Briefcase,
   LucideIcon,
+  MoreVertical,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 interface EnrichedActivity extends Doc<"activities"> {
@@ -41,6 +60,7 @@ interface EnrichedActivity extends Doc<"activities"> {
 interface ActivityItemProps {
   activity: EnrichedActivity;
   onTaskComplete?: (id: string, completed: boolean) => void;
+  onDelete?: (id: string) => void;
   isLast?: boolean;
 }
 
@@ -118,8 +138,12 @@ function getRelatedEntityName(entity: EnrichedActivity["relatedEntity"]): string
 export function ActivityItem({
   activity,
   onTaskComplete,
+  onDelete,
   isLast = false,
 }: ActivityItemProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const config = activityTypeConfig[activity.type] || activityTypeConfig.note;
   const Icon = config.icon;
   const relatedConfig = relatedTypeConfig[activity.relatedToType];
@@ -136,6 +160,18 @@ export function ActivityItem({
     },
     [activity._id, onTaskComplete]
   );
+
+  const handleDeleteConfirm = useCallback(async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete?.(activity._id);
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to delete activity:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [activity._id, onDelete]);
 
   const relatedEntityName = getRelatedEntityName(activity.relatedEntity);
   const relatedEntityLink = relatedConfig
@@ -172,7 +208,7 @@ export function ActivityItem({
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 min-w-0">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
             {/* Task checkbox */}
             {isTask && onTaskComplete && (
               <div className="pt-0.5">
@@ -211,7 +247,7 @@ export function ActivityItem({
             </div>
           </div>
 
-          {/* Badges */}
+          {/* Badges and Actions */}
           <div className="flex shrink-0 items-center gap-2">
             {/* Priority badge for tasks */}
             {isTask && activity.priority && (
@@ -248,6 +284,31 @@ export function ActivityItem({
             <Badge variant="outline" className="hidden sm:flex">
               {config.label}
             </Badge>
+
+            {/* Actions menu */}
+            {onDelete && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="text-red-600 dark:text-red-400"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 
@@ -339,6 +400,34 @@ export function ActivityItem({
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Activity</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this {activity.type}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

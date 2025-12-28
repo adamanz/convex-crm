@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RelativeTime } from "@/components/shared/relative-time";
-import { Id, Doc } from "../../../../convex/_generated/dataModel";
+import { Id, Doc } from "../../../convex/_generated/dataModel";
 
 // Type for audit log entry with user data
 export interface AuditLogEntryData {

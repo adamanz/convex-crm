@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { api } from "../../../convex/_generated/api";
+import { Doc, Id } from "../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,8 @@ interface AvailabilitySlot {
   endTime: string;
   enabled: boolean;
 }
+
+type LocationType = "custom" | "phone" | "zoom" | "meet" | "inPerson";
 
 const COLORS = [
   { value: "#3b82f6", label: "Blue" },
@@ -214,7 +216,7 @@ export function MeetingTypeForm({
                 <Select
                   value={formData.location}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, location: value }))
+                    setFormData((prev) => ({ ...prev, location: value as LocationType }))
                   }
                 >
                   <SelectTrigger>

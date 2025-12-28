@@ -112,7 +112,7 @@ export function ApprovalRuleForm({
 }: ApprovalRuleFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const users = useQuery(api.users.list);
+  const users = useQuery(api.users.list, { includeInactive: false });
   const createRule = useMutation(api.approvals.createRule);
   const updateRule = useMutation(api.approvals.updateRule);
 
@@ -132,9 +132,10 @@ export function ApprovalRuleForm({
       description: initialData?.description || "",
       entityType: initialData?.entityType || "deal",
       conditions: initialData?.conditions?.map((c) => ({
-        ...c,
+        field: c.field || "",
+        operator: c.operator as "equals" | "notEquals" | "greaterThan" | "lessThan" | "greaterThanOrEqual" | "lessThanOrEqual" | "contains" | "in",
         value: String(c.value),
-      })) || [{ field: "", operator: "greaterThan", value: "" }],
+      })) || [{ field: "", operator: "greaterThan" as const, value: "" }],
       approvers: initialData?.approvers?.map(String) || [],
       approvalType: initialData?.approvalType || "any",
       priority: initialData?.priority || 0,

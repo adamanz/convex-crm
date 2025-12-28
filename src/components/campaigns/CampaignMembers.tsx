@@ -102,17 +102,17 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
     return membersData.page.filter((member) => {
       const contact = member.contact;
       if (!contact) return false;
+      const fullName = `${contact.firstName || ""} ${contact.lastName || ""}`.toLowerCase();
       return (
-        contact.name.toLowerCase().includes(query) ||
-        contact.email?.toLowerCase().includes(query) ||
-        contact.company?.toLowerCase().includes(query)
+        fullName.includes(query) ||
+        contact.email?.toLowerCase().includes(query)
       );
     });
   }, [membersData?.page, searchQuery]);
 
-  const handleStatusChange = async (memberId: Id<"campaignMembers">, newStatus: MemberStatus) => {
+  const handleStatusChange = async (contactId: Id<"contacts">, newStatus: MemberStatus) => {
     try {
-      await updateMemberStatus({ memberId, status: newStatus });
+      await updateMemberStatus({ campaignId, contactId, status: newStatus });
       toast.success(`Member status updated to ${newStatus}`);
     } catch (error) {
       toast.error("Failed to update status");
@@ -120,9 +120,9 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
     }
   };
 
-  const handleRemoveMember = async (memberId: Id<"campaignMembers">) => {
+  const handleRemoveMember = async (contactId: Id<"contacts">) => {
     try {
-      await removeMember({ memberId });
+      await removeMember({ campaignId, contactId });
       toast.success("Member removed from campaign");
     } catch (error) {
       toast.error("Failed to remove member");
@@ -223,7 +223,7 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">
-                            {contact?.name ?? "Unknown Contact"}
+                            {contact ? `${contact.firstName || ""} ${contact.lastName || ""}`.trim() || "Unknown Contact" : "Unknown Contact"}
                           </span>
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {contact?.email && (
@@ -232,10 +232,10 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
                                 {contact.email}
                               </span>
                             )}
-                            {contact?.company && (
+                            {contact?.companyId && (
                               <span className="flex items-center gap-1">
                                 <Building2 className="h-3 w-3" />
-                                {contact.company}
+                                Company
                               </span>
                             )}
                           </div>
@@ -276,21 +276,21 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => handleStatusChange(member._id, "sent")}
+                              onClick={() => handleStatusChange(member.contactId, "sent")}
                               disabled={member.status === "sent"}
                             >
                               <Send className="h-4 w-4 mr-2" />
                               Mark as Sent
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleStatusChange(member._id, "responded")}
+                              onClick={() => handleStatusChange(member.contactId, "responded")}
                               disabled={member.status === "responded"}
                             >
                               <MessageSquare className="h-4 w-4 mr-2" />
                               Mark as Responded
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleStatusChange(member._id, "converted")}
+                              onClick={() => handleStatusChange(member.contactId, "converted")}
                               disabled={member.status === "converted"}
                             >
                               <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -298,7 +298,7 @@ export function CampaignMembers({ campaignId, onAddMembers }: CampaignMembersPro
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => handleRemoveMember(member._id)}
+                              onClick={() => handleRemoveMember(member.contactId)}
                               className="text-red-600"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />

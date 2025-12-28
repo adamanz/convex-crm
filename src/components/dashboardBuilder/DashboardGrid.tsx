@@ -13,7 +13,7 @@ interface Widget {
   description?: string;
   config: Record<string, unknown>;
   refreshInterval?: number;
-  order: number;
+  order?: number;
 }
 
 interface LayoutItem {
@@ -31,7 +31,7 @@ interface LayoutItem {
 interface Dashboard {
   _id: Id<"dashboards">;
   name: string;
-  layout: LayoutItem[];
+  layout?: LayoutItem[];
   widgets: Widget[];
 }
 
@@ -57,7 +57,7 @@ export function DashboardGrid({
 
   // Convert our layout format to react-grid-layout format
   const gridLayout: Layout[] = useMemo(() => {
-    return dashboard.layout.map((item) => ({
+    return (dashboard.layout || []).map((item) => ({
       i: item.widgetId,
       x: item.x,
       y: item.y,
@@ -139,7 +139,7 @@ export function DashboardGrid({
         containerPadding={[0, 0]}
         useCSSTransforms={true}
       >
-        {dashboard.layout.map((layoutItem) => {
+        {(dashboard.layout || []).map((layoutItem) => {
           const widget = getWidget(layoutItem.widgetId);
           if (!widget) return null;
 

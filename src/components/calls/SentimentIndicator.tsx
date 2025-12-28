@@ -211,7 +211,7 @@ export function SentimentIndicator({
                 className
               )}
             >
-              {React.cloneElement(config.icon as React.ReactElement, {
+              {React.cloneElement(config.icon as React.ReactElement<{ className?: string }>, {
                 className: iconSizeClasses[size],
               })}
             </div>
@@ -247,7 +247,7 @@ export function SentimentIndicator({
                 className
               )}
             >
-              {React.cloneElement(config.icon as React.ReactElement, {
+              {React.cloneElement(config.icon as React.ReactElement<{ className?: string }>, {
                 className: iconSizeClasses[size],
               })}
               {showLabel && config.label}
@@ -283,7 +283,7 @@ export function SentimentIndicator({
             sizeClasses[size]
           )}
         >
-          {React.cloneElement(config.icon as React.ReactElement, {
+          {React.cloneElement(config.icon as React.ReactElement<{ className?: string }>, {
             className: iconSizeClasses[size],
           })}
           {config.label}

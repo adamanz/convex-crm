@@ -22,7 +22,7 @@ interface Widget {
   description?: string;
   config: Record<string, unknown>;
   refreshInterval?: number;
-  order: number;
+  order?: number;
 }
 
 interface WidgetCardProps {

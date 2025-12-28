@@ -91,7 +91,7 @@ export abstract class BasePage {
   async getPageTitle(): Promise<string> {
     const title = this.mainContent.locator('h1').first();
     await expect(title).toBeVisible();
-    return title.textContent() || '';
+    return (await title.textContent()) || '';
   }
 
   /**

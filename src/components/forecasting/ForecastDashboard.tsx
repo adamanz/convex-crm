@@ -483,7 +483,7 @@ export function ForecastDashboard({
         <div>
           <PredictionConfidence
             confidence={currentForecast?.confidence || 0}
-            factors={currentForecast?.predictionFactors || []}
+            factors={[]}
             lastCalculatedAt={currentForecast?.lastCalculatedAt}
           />
         </div>

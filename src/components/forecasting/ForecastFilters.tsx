@@ -202,12 +202,12 @@ export function ForecastFilters({
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Date Range:</span>
                 <DatePicker
-                  date={startDate}
+                  value={startDate}
                   onChange={(date) => onDateRangeChange?.(date, endDate)}
                 />
                 <span className="text-sm text-muted-foreground">to</span>
                 <DatePicker
-                  date={endDate}
+                  value={endDate}
                   onChange={(date) => onDateRangeChange?.(startDate, date)}
                 />
               </div>

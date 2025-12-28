@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useMutation } from "convex/react";
-import { api } from "@convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import {
   File,
   FileImage,
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import type { DocumentWithUrl } from "@/types/documents";
 import { formatFileSize, getFileIcon } from "@/types/documents";
 import { formatRelativeTime } from "@/lib/utils";
-import { Id } from "@convex/_generated/dataModel";
+import { Id } from "../../../convex/_generated/dataModel";
 
 interface FileListProps {
   documents: DocumentWithUrl[];

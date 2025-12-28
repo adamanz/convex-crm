@@ -239,11 +239,10 @@ export function TeamPerformance({
                 </div>
 
                 {/* Avatar */}
-                <Avatar
-                  src={member.avatarUrl}
-                  fallback={getInitials(member.name)}
-                  size="md"
-                />
+                <Avatar>
+                  {member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />}
+                  <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                </Avatar>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
