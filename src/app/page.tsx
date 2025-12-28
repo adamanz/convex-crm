@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import {
@@ -17,6 +19,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DateRangeSelector, DateRange } from "@/components/analytics/DateRangeSelector";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 
@@ -142,8 +151,17 @@ function DealCard({
 }
 
 export default function Dashboard() {
+  const router = useRouter();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+
   // Note: These queries will need the Convex backend to be running
   // For now, we'll use placeholder data when queries return undefined
+
+  const handleQuickAdd = (href: string) => {
+    router.push(href);
+    setIsQuickAddOpen(false);
+  };
 
   return (
     <div className="flex-1 space-y-6 p-6 pt-4">
@@ -156,14 +174,38 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            Last 30 days
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Quick Add
-          </Button>
+          <DateRangeSelector
+            value={dateRange}
+            onChange={setDateRange}
+            showPresets={true}
+            align="end"
+          />
+          <DropdownMenu open={isQuickAddOpen} onOpenChange={setIsQuickAddOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Quick Add
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => handleQuickAdd("/contacts/new")}>
+                <Users className="h-4 w-4 mr-2" />
+                Add Contact
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleQuickAdd("/companies/new")}>
+                <Building2 className="h-4 w-4 mr-2" />
+                Add Company
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleQuickAdd("/deals/new")}>
+                <Handshake className="h-4 w-4 mr-2" />
+                Create Deal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleQuickAdd("/activities/new")}>
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Add Task
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

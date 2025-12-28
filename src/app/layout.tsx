@@ -1,8 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
-import { CreateFAB } from "@/components/layout/create-fab";
+import { RootLayoutClient } from "@/components/layout/root-layout-client";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,38 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        {children}
-        <Toaster
-          position="top-right"
-          theme="dark"
-          richColors
-          closeButton
-        />
-
-        {/* Create FAB - accessible from all pages */}
-        <CreateFAB />
-
-        {/* ElevenLabs ConvAI Widget v2 */}
-        {process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID && (
-          <>
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  (function() {
-                    const container = document.createElement('div');
-                    container.innerHTML = '<elevenlabs-convai agent-id="${process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID}"></elevenlabs-convai>';
-                    document.body.appendChild(container.firstChild);
-                  })();
-                `,
-              }}
-            />
-            <script
-              src="https://unpkg.com/@elevenlabs/convai-widget-embed@beta"
-              async
-              type="text/javascript"
-            />
-          </>
-        )}
+        <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>
   );

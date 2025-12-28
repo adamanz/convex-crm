@@ -36,16 +36,20 @@ export async function POST(request: NextRequest) {
 
     const results = await response.json();
 
-    // Format response for ElevenLabs agent
+    // Format response for ElevenLabs agent and SearchResultsModal
     return NextResponse.json({
       success: true,
       results: results.map((company: any) => ({
         id: company._id,
         name: company.name,
-        industry: company.industry,
-        location: company.location,
-        website: company.website,
-        employees: company.employees,
+        type: 'company',
+        subtitle: company.industry || company.location || '',
+        metadata: {
+          industry: company.industry,
+          location: company.location,
+          website: company.website,
+          employees: company.employees,
+        },
       })),
       count: results.length,
     });

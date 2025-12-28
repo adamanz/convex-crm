@@ -36,16 +36,20 @@ export async function POST(request: NextRequest) {
 
     const results = await response.json();
 
-    // Format response for ElevenLabs agent
+    // Format response for ElevenLabs agent and SearchResultsModal
     return NextResponse.json({
       success: true,
       results: results.map((contact: any) => ({
         id: contact._id,
         name: `${contact.firstName || ''} ${contact.lastName || ''}`.trim(),
-        email: contact.email,
-        phone: contact.phone,
-        title: contact.title,
-        company: contact.company?.name,
+        type: 'contact',
+        subtitle: contact.email || contact.phone || contact.title || '',
+        metadata: {
+          email: contact.email,
+          phone: contact.phone,
+          title: contact.title,
+          company: contact.company?.name,
+        },
       })),
       count: results.length,
     });
