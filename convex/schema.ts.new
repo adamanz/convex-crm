@@ -1,0 +1,15 @@
+  // ============================================================================
+  // FIELD PERMISSIONS - Role-based field access control
+  // ============================================================================
+  fieldPermissions: defineTable({
+    entityType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    field: v.string(),
+    role: v.union(v.literal("admin"), v.literal("manager"), v.literal("member")),
+    permission: v.union(v.literal("read"), v.literal("write"), v.literal("hidden")),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity_role", ["entityType", "role"])
+    .index("by_entity_field_role", ["entityType", "field", "role"]),
+});

@@ -1,0 +1,1419 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  tags: defineTable({
+    name: v.string(),
+    color: v.string(),
+    description: v.optional(v.string()),
+    usageCount: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_name", ["name"])
+    .index("by_usage", ["usageCount"]),
+
+  contacts: defineTable({
+    firstName: v.optional(v.string()),
+    lastName: v.string(),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    companyId: v.optional(v.id("companies")),
+    title: v.optional(v.string()),
+    address: v.optional(
+      v.object({
+        street: v.optional(v.string()),
+        city: v.optional(v.string()),
+        state: v.optional(v.string()),
+        postalCode: v.optional(v.string()),
+        country: v.optional(v.string()),
+      })
+    ),
+    linkedinUrl: v.optional(v.string()),
+    twitterHandle: v.optional(v.string()),
+    source: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
+    tags: v.array(v.string()),
+    enrichedAt: v.optional(v.number()),
+    enrichmentData: v.optional(v.any()),
+    aiScore: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastActivityAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_company", ["companyId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_created", ["createdAt"])
+    .searchIndex("search_contacts", {
+      searchField: "lastName",
+      filterFields: ["ownerId"],
+    }),
+
+  companies: defineTable({
+    name: v.string(),
+    domain: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
+    industry: v.optional(v.string()),
+    size: v.optional(v.string()),
+    annualRevenue: v.optional(v.number()),
+    description: v.optional(v.string()),
+    address: v.optional(
+      v.object({
+        street: v.optional(v.string()),
+        city: v.optional(v.string()),
+        state: v.optional(v.string()),
+        postalCode: v.optional(v.string()),
+        country: v.optional(v.string()),
+      })
+    ),
+    phone: v.optional(v.string()),
+    website: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
+    tags: v.array(v.string()),
+    enrichedAt: v.optional(v.number()),
+    enrichmentData: v.optional(v.any()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_domain", ["domain"])
+    .index("by_owner", ["ownerId"])
+    .index("by_created", ["createdAt"])
+    .searchIndex("search_companies", {
+      searchField: "name",
+      filterFields: ["ownerId", "industry"],
+    }),
+
+  deals: defineTable({
+    name: v.string(),
+    companyId: v.optional(v.id("companies")),
+    contactIds: v.array(v.id("contacts")),
+    pipelineId: v.id("pipelines"),
+    stageId: v.string(),
+    amount: v.optional(v.number()),
+    currency: v.string(),
+    probability: v.optional(v.number()),
+    expectedCloseDate: v.optional(v.number()),
+    actualCloseDate: v.optional(v.number()),
+    status: v.union(v.literal("open"), v.literal("won"), v.literal("lost")),
+    lostReason: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
+    tags: v.array(v.string()),
+    aiInsights: v.optional(v.any()),
+    winProbability: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    stageChangedAt: v.number(),
+  })
+    .index("by_company", ["companyId"])
+    .index("by_pipeline", ["pipelineId"])
+    .index("by_pipeline_stage", ["pipelineId", "stageId"])
+    .index("by_stage", ["stageId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"]),
+
+  pipelines: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    stages: v.array(
+      v.object({
+        id: v.string(),
+        name: v.string(),
+        color: v.string(),
+        order: v.number(),
+        probability: v.optional(v.number()),
+      })
+    ),
+    isDefault: v.boolean(),
+    ownerId: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_default", ["isDefault"]),
+
+  activities: defineTable({
+    type: v.union(v.literal("task"), v.literal("call"), v.literal("email"), v.literal("meeting"), v.literal("note")),
+    subject: v.string(),
+    description: v.optional(v.string()),
+    relatedToType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    relatedToId: v.string(),
+    dueDate: v.optional(v.number()),
+    completed: v.optional(v.boolean()),
+    completedAt: v.optional(v.number()),
+    priority: v.optional(v.union(v.literal("low"), v.literal("medium"), v.literal("high"))),
+    duration: v.optional(v.number()),
+    outcome: v.optional(v.string()),
+    emailDirection: v.optional(v.union(v.literal("inbound"), v.literal("outbound"))),
+    ownerId: v.optional(v.id("users")),
+    assignedToId: v.optional(v.id("users")),
+    aiSummary: v.optional(v.string()),
+    sentiment: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_related", ["relatedToType", "relatedToId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_assigned", ["assignedToId"])
+    .index("by_type", ["type"])
+    .index("by_due_date", ["dueDate"])
+    .index("by_created", ["createdAt"]),
+
+  conversations: defineTable({
+    phoneNumber: v.string(),
+    sendblueNumber: v.string(),
+    contactId: v.optional(v.id("contacts")),
+    status: v.union(v.literal("active"), v.literal("archived"), v.literal("workflow_active")),
+    isIMessage: v.boolean(),
+    aiEnabled: v.boolean(),
+    activeWorkflowId: v.optional(v.id("workflows")),
+    messageCount: v.number(),
+    lastMessageAt: v.number(),
+    lastMessagePreview: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
+    createdAt: v.number(),
+  })
+    .index("by_phone", ["phoneNumber"])
+    .index("by_contact", ["contactId"])
+    .index("by_owner", ["ownerId"])
+    .index("by_status", ["status"]),
+
+  messages: defineTable({
+    conversationId: v.id("conversations"),
+    direction: v.union(v.literal("inbound"), v.literal("outbound")),
+    content: v.string(),
+    mediaUrl: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("delivered"), v.literal("read"), v.literal("failed")),
+    messageHandle: v.optional(v.string()),
+    service: v.optional(v.union(v.literal("iMessage"), v.literal("SMS"))),
+    errorMessage: v.optional(v.string()),
+    aiGenerated: v.optional(v.boolean()),
+    workflowId: v.optional(v.id("workflows")),
+    timestamp: v.number(),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_message_handle", ["messageHandle"]),
+
+  users: defineTable({
+    clerkId: v.optional(v.string()),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    role: v.union(v.literal("admin"), v.literal("manager"), v.literal("member")),
+    preferences: v.optional(v.any()),
+    isActive: v.boolean(),
+    lastActiveAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_clerk", ["clerkId"])
+    .index("by_email", ["email"]),
+
+  workflows: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    triggerType: v.union(v.literal("manual"), v.literal("deal_stage_change"), v.literal("new_contact"), v.literal("inbound_message"), v.literal("scheduled")),
+    triggerConfig: v.optional(v.any()),
+    steps: v.array(v.object({
+      id: v.string(),
+      type: v.union(v.literal("send_message"), v.literal("send_email"), v.literal("create_task"), v.literal("wait"), v.literal("condition"), v.literal("ai_action")),
+      config: v.any(),
+      order: v.number(),
+    })),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_trigger", ["triggerType"]),
+
+  workflowRuns: defineTable({
+    workflowId: v.id("workflows"),
+    contextType: v.string(),
+    contextId: v.string(),
+    currentStepId: v.string(),
+    status: v.union(v.literal("active"), v.literal("paused"), v.literal("completed"), v.literal("failed")),
+    collectedData: v.optional(v.any()),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+    nextStepAt: v.optional(v.number()),
+  })
+    .index("by_workflow", ["workflowId"])
+    .index("by_context", ["contextType", "contextId"])
+    .index("by_status", ["status"]),
+
+  activityLog: defineTable({
+    userId: v.optional(v.id("users")),
+    system: v.optional(v.boolean()),
+    action: v.string(),
+    entityType: v.string(),
+    entityId: v.string(),
+    changes: v.optional(v.any()),
+    metadata: v.optional(v.any()),
+    timestamp: v.number(),
+  })
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_user", ["userId"])
+    .index("by_timestamp", ["timestamp"]),
+
+  notifications: defineTable({
+    type: v.union(v.literal("deal_won"), v.literal("deal_lost"), v.literal("deal_stage_change"), v.literal("task_assigned"), v.literal("task_due_soon"), v.literal("task_overdue"), v.literal("contact_created"), v.literal("message_received"), v.literal("mention"), v.literal("system")),
+    title: v.string(),
+    message: v.string(),
+    link: v.optional(v.string()),
+    relatedEntityType: v.optional(v.union(v.literal("deal"), v.literal("contact"), v.literal("company"), v.literal("task"), v.literal("message"))),
+    relatedEntityId: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
+    read: v.boolean(),
+    readAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_read", ["read"])
+    .index("by_created", ["createdAt"])
+    .index("by_user_read", ["userId", "read"]),
+
+  documents: defineTable({
+    name: v.string(),
+    storageId: v.id("_storage"),
+    mimeType: v.string(),
+    size: v.number(),
+    relatedToType: v.optional(v.union(v.literal("contact"), v.literal("company"), v.literal("deal"), v.literal("activity"))),
+    relatedToId: v.optional(v.string()),
+    description: v.optional(v.string()),
+    uploadedBy: v.optional(v.id("users")),
+    tags: v.array(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_related", ["relatedToType", "relatedToId"])
+    .index("by_uploaded_by", ["uploadedBy"])
+    .index("by_created", ["createdAt"]),
+
+  customFieldDefinitions: defineTable({
+    name: v.string(),
+    label: v.string(),
+    description: v.optional(v.string()),
+    entityType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    fieldType: v.union(v.literal("text"), v.literal("number"), v.literal("date"), v.literal("select"), v.literal("multiselect"), v.literal("checkbox"), v.literal("url"), v.literal("email"), v.literal("phone"), v.literal("currency"), v.literal("textarea")),
+    placeholder: v.optional(v.string()),
+    isRequired: v.boolean(),
+    defaultValue: v.optional(v.any()),
+    options: v.optional(v.array(v.object({ value: v.string(), label: v.string(), color: v.optional(v.string()) }))),
+    validation: v.optional(v.object({ min: v.optional(v.number()), max: v.optional(v.number()), pattern: v.optional(v.string()), message: v.optional(v.string()) })),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity", ["entityType"])
+    .index("by_entity_name", ["entityType", "name"])
+    .index("by_active", ["isActive"]),
+
+  customFieldValues: defineTable({
+    definitionId: v.id("customFieldDefinitions"),
+    entityType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    entityId: v.string(),
+    value: v.any(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_definition", ["definitionId"])
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_definition_entity", ["definitionId", "entityType", "entityId"]),
+
+  quotes: defineTable({
+    dealId: v.id("deals"),
+    name: v.string(),
+    quoteNumber: v.string(),
+    status: v.union(v.literal("draft"), v.literal("sent"), v.literal("accepted"), v.literal("rejected"), v.literal("expired")),
+    lineItems: v.array(v.object({ id: v.string(), product: v.string(), description: v.optional(v.string()), quantity: v.number(), unitPrice: v.number(), discount: v.optional(v.number()), discountType: v.optional(v.union(v.literal("percentage"), v.literal("fixed"))), total: v.number() })),
+    subtotal: v.number(),
+    discountAmount: v.optional(v.number()),
+    discountType: v.optional(v.union(v.literal("percentage"), v.literal("fixed"))),
+    taxRate: v.optional(v.number()),
+    taxAmount: v.optional(v.number()),
+    total: v.number(),
+    currency: v.string(),
+    validUntil: v.optional(v.number()),
+    terms: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    version: v.number(),
+    versions: v.array(v.object({ version: v.number(), createdAt: v.number(), changes: v.optional(v.string()), total: v.number() })),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    sentAt: v.optional(v.number()),
+    acceptedAt: v.optional(v.number()),
+    rejectedAt: v.optional(v.number()),
+  })
+    .index("by_deal", ["dealId"])
+    .index("by_status", ["status"])
+    .index("by_quote_number", ["quoteNumber"])
+    .index("by_created", ["createdAt"]),
+
+  territories: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    color: v.string(),
+    ownerId: v.optional(v.id("users")),
+    rules: v.array(v.object({ id: v.string(), field: v.union(v.literal("region"), v.literal("state"), v.literal("country"), v.literal("industry"), v.literal("companySize"), v.literal("annualRevenue")), operator: v.union(v.literal("equals"), v.literal("notEquals"), v.literal("contains"), v.literal("startsWith"), v.literal("greaterThan"), v.literal("lessThan"), v.literal("in")), value: v.any() })),
+    assignedContacts: v.number(),
+    assignedCompanies: v.number(),
+    assignedDeals: v.number(),
+    totalDealValue: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_active", ["isActive"])
+    .index("by_name", ["name"]),
+
+  territoryAssignments: defineTable({
+    territoryId: v.id("territories"),
+    entityType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    entityId: v.string(),
+    assignedAt: v.number(),
+    assignedBy: v.optional(v.id("users")),
+    autoAssigned: v.boolean(),
+  })
+    .index("by_territory", ["territoryId"])
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_territory_entity", ["territoryId", "entityType"]),
+
+  emails: defineTable({
+    to: v.array(v.object({ email: v.string(), name: v.optional(v.string()) })),
+    cc: v.optional(v.array(v.object({ email: v.string(), name: v.optional(v.string()) }))),
+    bcc: v.optional(v.array(v.object({ email: v.string(), name: v.optional(v.string()) }))),
+    subject: v.string(),
+    body: v.string(),
+    bodyHtml: v.optional(v.string()),
+    templateId: v.optional(v.id("emailTemplates")),
+    relatedToType: v.optional(v.union(v.literal("contact"), v.literal("company"), v.literal("deal"))),
+    relatedToId: v.optional(v.string()),
+    fromEmail: v.optional(v.string()),
+    fromName: v.optional(v.string()),
+    sentBy: v.optional(v.id("users")),
+    status: v.union(v.literal("draft"), v.literal("queued"), v.literal("sending"), v.literal("sent"), v.literal("delivered"), v.literal("failed"), v.literal("bounced")),
+    errorMessage: v.optional(v.string()),
+    externalId: v.optional(v.string()),
+    provider: v.optional(v.string()),
+    trackOpens: v.optional(v.boolean()),
+    trackClicks: v.optional(v.boolean()),
+    openCount: v.optional(v.number()),
+    clickCount: v.optional(v.number()),
+    firstOpenedAt: v.optional(v.number()),
+    lastOpenedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    scheduledAt: v.optional(v.number()),
+    sentAt: v.optional(v.number()),
+    deliveredAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_sent_by", ["sentBy"])
+    .index("by_related", ["relatedToType", "relatedToId"])
+    .index("by_created", ["createdAt"])
+    .index("by_external_id", ["externalId"]),
+
+  emailTemplates: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    subject: v.string(),
+    body: v.string(),
+    bodyHtml: v.optional(v.string()),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    usageCount: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    variables: v.optional(v.array(v.object({ name: v.string(), defaultValue: v.optional(v.string()), description: v.optional(v.string()) }))),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_category", ["category"])
+    .index("by_active", ["isActive"])
+    .index("by_usage", ["usageCount"])
+    .index("by_created", ["createdAt"]),
+
+  emailEvents: defineTable({
+    emailId: v.id("emails"),
+    eventType: v.union(v.literal("sent"), v.literal("delivered"), v.literal("opened"), v.literal("clicked"), v.literal("bounced"), v.literal("complained"), v.literal("unsubscribed")),
+    metadata: v.optional(v.any()),
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    location: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_email", ["emailId"])
+    .index("by_event_type", ["eventType"])
+    .index("by_timestamp", ["timestamp"]),
+
+  emailSettings: defineTable({
+    provider: v.union(v.literal("none"), v.literal("smtp"), v.literal("sendgrid"), v.literal("resend"), v.literal("mailgun"), v.literal("postmark")),
+    smtpHost: v.optional(v.string()),
+    smtpPort: v.optional(v.number()),
+    smtpSecure: v.optional(v.boolean()),
+    smtpUsername: v.optional(v.string()),
+    apiKeyConfigured: v.optional(v.boolean()),
+    defaultFromEmail: v.optional(v.string()),
+    defaultFromName: v.optional(v.string()),
+    replyToEmail: v.optional(v.string()),
+    enableOpenTracking: v.optional(v.boolean()),
+    enableClickTracking: v.optional(v.boolean()),
+    trackingDomain: v.optional(v.string()),
+    defaultSignature: v.optional(v.string()),
+    unsubscribeLink: v.optional(v.string()),
+    dailySendLimit: v.optional(v.number()),
+    hourlySendLimit: v.optional(v.number()),
+    updatedAt: v.number(),
+    updatedBy: v.optional(v.id("users")),
+  }),
+
+  integrations: defineTable({
+    type: v.union(v.literal("salesforce"), v.literal("google"), v.literal("sendblue"), v.literal("parallel")),
+    status: v.union(v.literal("connected"), v.literal("disconnected"), v.literal("error"), v.literal("syncing")),
+    config: v.any(),
+    credentials: v.optional(v.object({ accessToken: v.optional(v.string()), refreshToken: v.optional(v.string()), tokenExpiresAt: v.optional(v.number()), apiKey: v.optional(v.string()), apiSecret: v.optional(v.string()), apiKeyMasked: v.optional(v.string()), apiSecretMasked: v.optional(v.string()) })),
+    connectedEmail: v.optional(v.string()),
+    instanceUrl: v.optional(v.string()),
+    lastSyncedAt: v.optional(v.number()),
+    lastSyncStatus: v.optional(v.string()),
+    lastSyncError: v.optional(v.string()),
+    syncStats: v.optional(v.object({ totalRecordsSynced: v.optional(v.number()), lastSyncRecordCount: v.optional(v.number()), syncHistory: v.optional(v.array(v.object({ timestamp: v.number(), recordCount: v.number(), status: v.string() }))) })),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_type", ["type"])
+    .index("by_status", ["status"]),
+
+  calendarConnections: defineTable({
+    provider: v.union(v.literal("google"), v.literal("outlook"), v.literal("apple")),
+    userId: v.id("users"),
+    accessToken: v.string(),
+    refreshToken: v.optional(v.string()),
+    tokenExpiresAt: v.optional(v.number()),
+    email: v.string(),
+    name: v.optional(v.string()),
+    calendarId: v.optional(v.string()),
+    syncDirection: v.union(v.literal("one-way"), v.literal("two-way")),
+    syncEnabled: v.boolean(),
+    status: v.union(v.literal("connected"), v.literal("disconnected"), v.literal("error"), v.literal("token_expired")),
+    errorMessage: v.optional(v.string()),
+    lastSyncedAt: v.optional(v.number()),
+    syncToken: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_provider", ["userId", "provider"])
+    .index("by_status", ["status"]),
+
+  calendarEvents: defineTable({
+    connectionId: v.id("calendarConnections"),
+    externalEventId: v.string(),
+    iCalUID: v.optional(v.string()),
+    title: v.string(),
+    description: v.optional(v.string()),
+    location: v.optional(v.string()),
+    startTime: v.number(),
+    endTime: v.number(),
+    isAllDay: v.boolean(),
+    timezone: v.optional(v.string()),
+    recurringEventId: v.optional(v.string()),
+    recurrenceRule: v.optional(v.string()),
+    status: v.union(v.literal("confirmed"), v.literal("tentative"), v.literal("cancelled")),
+    attendees: v.optional(v.array(v.object({ email: v.string(), name: v.optional(v.string()), responseStatus: v.optional(v.union(v.literal("accepted"), v.literal("declined"), v.literal("tentative"), v.literal("needsAction"))), organizer: v.optional(v.boolean()) }))),
+    relatedContactId: v.optional(v.id("contacts")),
+    relatedCompanyId: v.optional(v.id("companies")),
+    relatedDealId: v.optional(v.id("deals")),
+    relatedActivityId: v.optional(v.id("activities")),
+    syncSource: v.union(v.literal("external"), v.literal("crm")),
+    lastModifiedExternal: v.optional(v.number()),
+    etag: v.optional(v.string()),
+    colorId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_connection", ["connectionId"])
+    .index("by_external_id", ["connectionId", "externalEventId"])
+    .index("by_start_time", ["startTime"])
+    .index("by_contact", ["relatedContactId"])
+    .index("by_company", ["relatedCompanyId"])
+    .index("by_deal", ["relatedDealId"])
+    .index("by_activity", ["relatedActivityId"]),
+
+  calendarSyncLog: defineTable({
+    connectionId: v.id("calendarConnections"),
+    syncType: v.union(v.literal("full"), v.literal("incremental"), v.literal("push")),
+    direction: v.union(v.literal("pull"), v.literal("push")),
+    status: v.union(v.literal("started"), v.literal("completed"), v.literal("failed")),
+    eventsCreated: v.optional(v.number()),
+    eventsUpdated: v.optional(v.number()),
+    eventsDeleted: v.optional(v.number()),
+    errorMessage: v.optional(v.string()),
+    errorCode: v.optional(v.string()),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_connection", ["connectionId"])
+    .index("by_started", ["startedAt"]),
+
+  meetingTypes: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    duration: v.number(),
+    color: v.string(),
+    location: v.union(v.literal("zoom"), v.literal("meet"), v.literal("phone"), v.literal("inPerson"), v.literal("custom")),
+    locationDetails: v.optional(v.string()),
+    buffer: v.optional(v.number()),
+    minNotice: v.optional(v.number()),
+    maxFuture: v.optional(v.number()),
+    availability: v.array(v.object({ dayOfWeek: v.number(), startTime: v.string(), endTime: v.string(), enabled: v.boolean() })),
+    bookingLink: v.string(),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_booking_link", ["bookingLink"])
+    .index("by_created_by", ["createdBy"])
+    .index("by_active", ["isActive"]),
+
+  bookings: defineTable({
+    meetingTypeId: v.id("meetingTypes"),
+    contactId: v.optional(v.id("contacts")),
+    bookerName: v.string(),
+    bookerEmail: v.string(),
+    bookerPhone: v.optional(v.string()),
+    scheduledAt: v.number(),
+    duration: v.number(),
+    timezone: v.optional(v.string()),
+    status: v.union(v.literal("pending"), v.literal("confirmed"), v.literal("cancelled"), v.literal("completed"), v.literal("noShow")),
+    notes: v.optional(v.string()),
+    hostNotes: v.optional(v.string()),
+    meetingLink: v.optional(v.string()),
+    location: v.union(v.literal("zoom"), v.literal("meet"), v.literal("phone"), v.literal("inPerson"), v.literal("custom")),
+    locationDetails: v.optional(v.string()),
+    confirmationSent: v.optional(v.boolean()),
+    confirmationSentAt: v.optional(v.number()),
+    reminderSent: v.optional(v.boolean()),
+    reminderSentAt: v.optional(v.number()),
+    calendarEventId: v.optional(v.id("calendarEvents")),
+    cancelledAt: v.optional(v.number()),
+    cancelledBy: v.optional(v.union(v.literal("host"), v.literal("booker"))),
+    cancellationReason: v.optional(v.string()),
+    rescheduledFrom: v.optional(v.id("bookings")),
+    bookedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_meeting_type", ["meetingTypeId"])
+    .index("by_contact", ["contactId"])
+    .index("by_scheduled", ["scheduledAt"])
+    .index("by_status", ["status"])
+    .index("by_booker_email", ["bookerEmail"]),
+
+  aiSettings: defineTable({
+    enrichmentProvider: v.string(),
+    enrichmentApiKey: v.optional(v.string()),
+    openaiApiKey: v.optional(v.string()),
+    anthropicApiKey: v.optional(v.string()),
+    autoEnrichContacts: v.boolean(),
+    autoEnrichCompanies: v.boolean(),
+    autoCalculateScores: v.boolean(),
+    autoAnalyzeSentiment: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
+
+  aiEnrichmentQueue: defineTable({
+    entityType: v.union(v.literal("contact"), v.literal("company")),
+    entityId: v.string(),
+    status: v.union(v.literal("pending"), v.literal("processing"), v.literal("completed"), v.literal("failed")),
+    result: v.optional(v.any()),
+    error: v.optional(v.string()),
+    attempts: v.number(),
+    maxAttempts: v.number(),
+    createdAt: v.number(),
+    processedAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_created", ["createdAt"]),
+
+  // ============================================================================
+  // GOALS - Sales targets and quotas
+  // ============================================================================
+  goals: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    type: v.union(
+      v.literal("revenue"),
+      v.literal("deals"),
+      v.literal("activities"),
+      v.literal("calls")
+    ),
+    targetValue: v.number(),
+    currentValue: v.number(),
+    startDate: v.number(),
+    endDate: v.number(),
+    period: v.union(
+      v.literal("daily"),
+      v.literal("weekly"),
+      v.literal("monthly"),
+      v.literal("quarterly"),
+      v.literal("yearly")
+    ),
+    ownerId: v.optional(v.id("users")),
+    teamWide: v.boolean(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_team_wide", ["teamWide"])
+    .index("by_active", ["isActive"])
+    .index("by_type", ["type"])
+    .index("by_period", ["period"])
+    .index("by_end_date", ["endDate"]),
+
+  // ============================================================================
+  // GOAL PROGRESS - Track progress over time
+  // ============================================================================
+  goalProgress: defineTable({
+    goalId: v.id("goals"),
+    date: v.number(),
+    value: v.number(),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_goal", ["goalId"])
+    .index("by_date", ["date"])
+    .index("by_goal_date", ["goalId", "date"]),
+
+  // ============================================================================
+  // RETENTION POLICIES - GDPR compliant data retention rules
+  // ============================================================================
+  retentionPolicies: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    entityType: v.union(
+      v.literal("contact"),
+      v.literal("company"),
+      v.literal("deal"),
+      v.literal("activity"),
+      v.literal("message")
+    ),
+    retentionDays: v.number(),
+    action: v.union(
+      v.literal("archive"),
+      v.literal("delete"),
+      v.literal("anonymize")
+    ),
+    conditions: v.array(
+      v.object({
+        field: v.string(),
+        operator: v.union(
+          v.literal("equals"),
+          v.literal("notEquals"),
+          v.literal("greaterThan"),
+          v.literal("lessThan"),
+          v.literal("contains"),
+          v.literal("isEmpty"),
+          v.literal("isNotEmpty"),
+          v.literal("daysSinceGreaterThan"),
+          v.literal("daysSinceLessThan")
+        ),
+        value: v.optional(v.any()),
+      })
+    ),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    lastRunAt: v.optional(v.number()),
+    lastRunResult: v.optional(
+      v.object({
+        recordsProcessed: v.number(),
+        recordsAffected: v.number(),
+        errors: v.optional(v.array(v.string())),
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity_type", ["entityType"])
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"]),
+
+  // ============================================================================
+  // RETENTION LOGS - Audit trail for retention actions
+  // ============================================================================
+  retentionLogs: defineTable({
+    policyId: v.id("retentionPolicies"),
+    policyName: v.string(),
+    executedAt: v.number(),
+    executedBy: v.optional(v.id("users")),
+    entityType: v.string(),
+    action: v.union(
+      v.literal("archive"),
+      v.literal("delete"),
+      v.literal("anonymize")
+    ),
+    recordsProcessed: v.number(),
+    recordsAffected: v.number(),
+    affectedRecordIds: v.array(v.string()),
+    status: v.union(
+      v.literal("completed"),
+      v.literal("partial"),
+      v.literal("failed")
+    ),
+    errors: v.optional(v.array(v.string())),
+  })
+    .index("by_policy", ["policyId"])
+    .index("by_executed", ["executedAt"])
+    .index("by_status", ["status"]),
+
+  // ============================================================================
+  // DATA EXPORT REQUESTS - GDPR data portability
+  // ============================================================================
+  dataExportRequests: defineTable({
+    userId: v.optional(v.id("users")),
+    requestedEmail: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("processing"),
+      v.literal("completed"),
+      v.literal("failed"),
+      v.literal("expired")
+    ),
+    entityTypes: v.array(
+      v.union(
+        v.literal("contacts"),
+        v.literal("companies"),
+        v.literal("deals"),
+        v.literal("activities"),
+        v.literal("messages"),
+        v.literal("all")
+      )
+    ),
+    format: v.union(v.literal("json"), v.literal("csv")),
+    downloadUrl: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    fileSize: v.optional(v.number()),
+    errorMessage: v.optional(v.string()),
+    requestedAt: v.number(),
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_user", ["userId"])
+    .index("by_email", ["requestedEmail"])
+    .index("by_requested", ["requestedAt"]),
+
+  // ============================================================================
+  // DATA SUBJECT REQUESTS - GDPR rights (access, delete, portability)
+  // ============================================================================
+  dataSubjectRequests: defineTable({
+    type: v.union(
+      v.literal("access"),
+      v.literal("delete"),
+      v.literal("portability"),
+      v.literal("rectification"),
+      v.literal("restriction")
+    ),
+    email: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("verified"),
+      v.literal("in_progress"),
+      v.literal("completed"),
+      v.literal("rejected")
+    ),
+    verificationToken: v.optional(v.string()),
+    verifiedAt: v.optional(v.number()),
+    assignedTo: v.optional(v.id("users")),
+    notes: v.optional(v.string()),
+    resultSummary: v.optional(v.string()),
+    recordsFound: v.optional(v.number()),
+    recordsProcessed: v.optional(v.number()),
+    exportRequestId: v.optional(v.id("dataExportRequests")),
+    requestedAt: v.number(),
+    dueDate: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"])
+    .index("by_type", ["type"])
+    .index("by_due_date", ["dueDate"])
+    .index("by_requested", ["requestedAt"]),
+
+  // ============================================================================
+  // ANONYMIZATION RECORDS - Track anonymized data for compliance
+  // ============================================================================
+  anonymizationRecords: defineTable({
+    entityType: v.union(
+      v.literal("contact"),
+      v.literal("company"),
+      v.literal("deal"),
+      v.literal("activity"),
+      v.literal("message")
+    ),
+    entityId: v.string(),
+    triggeredBy: v.union(
+      v.literal("retention_policy"),
+      v.literal("dsr_request"),
+      v.literal("manual")
+    ),
+    policyId: v.optional(v.id("retentionPolicies")),
+    dsrId: v.optional(v.id("dataSubjectRequests")),
+    originalDataHash: v.optional(v.string()),
+    anonymizedFields: v.array(v.string()),
+    performedBy: v.optional(v.id("users")),
+    performedAt: v.number(),
+  })
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_performed", ["performedAt"])
+    .index("by_trigger", ["triggeredBy"]),
+
+  // ============================================================================
+  // WEBHOOKS - External integrations
+  // ============================================================================
+  webhookSubscriptions: defineTable({
+    name: v.string(),
+    url: v.string(),
+    events: v.array(v.string()),
+    secret: v.optional(v.string()),
+    isActive: v.boolean(),
+    failureCount: v.number(),
+    lastTriggeredAt: v.optional(v.number()),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"]),
+
+  webhookDeliveries: defineTable({
+    subscriptionId: v.id("webhookSubscriptions"),
+    event: v.string(),
+    payload: v.any(),
+    status: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
+    attempts: v.number(),
+    responseCode: v.optional(v.number()),
+    responseBody: v.optional(v.string()),
+    errorMessage: v.optional(v.string()),
+    nextRetryAt: v.optional(v.number()),
+    deliveredAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_subscription", ["subscriptionId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"]),
+
+  // ============================================================================
+  // WEB FORMS - Lead capture forms
+  // ============================================================================
+  webForms: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    fields: v.array(v.object({
+      id: v.string(),
+      name: v.string(),
+      label: v.string(),
+      type: v.string(),
+      required: v.boolean(),
+      options: v.optional(v.array(v.string())),
+    })),
+    submitButtonText: v.optional(v.string()),
+    successMessage: v.optional(v.string()),
+    redirectUrl: v.optional(v.string()),
+    notifyEmails: v.optional(v.array(v.string())),
+    notifications: v.optional(v.array(v.string())),
+    primaryColor: v.optional(v.string()),
+    backgroundColor: v.optional(v.string()),
+    fontFamily: v.optional(v.string()),
+    createContact: v.boolean(),
+    assignToUserId: v.optional(v.id("users")),
+    tags: v.optional(v.array(v.string())),
+    submissionCount: v.number(),
+    lastSubmissionAt: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"])
+    .index("by_created_by", ["createdBy"]),
+
+  formSubmissions: defineTable({
+    formId: v.id("webForms"),
+    data: v.any(),
+    status: v.union(v.literal("new"), v.literal("reviewed"), v.literal("converted"), v.literal("spam"), v.literal("archived")),
+    contactId: v.optional(v.id("contacts")),
+    source: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    convertedToContactId: v.optional(v.id("contacts")),
+    convertedAt: v.optional(v.number()),
+    convertedBy: v.optional(v.id("users")),
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    referrer: v.optional(v.string()),
+    submittedAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_form", ["formId"])
+    .index("by_contact", ["contactId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"])
+    .index("by_form_status", ["formId", "status"]),
+
+  // ============================================================================
+  // SMART LISTS - Dynamic filtered lists of contacts, companies, or deals
+  // ============================================================================
+  smartLists: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    entityType: v.union(v.literal("contact"), v.literal("company"), v.literal("deal")),
+    filters: v.any(),
+    sortField: v.optional(v.string()),
+    sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    isPublic: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    lastRefreshedAt: v.number(),
+    cachedCount: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity_type", ["entityType"])
+    .index("by_created", ["createdAt"])
+    .index("by_created_by", ["createdBy"])
+    .index("by_public", ["isPublic"]),
+
+  // ============================================================================
+  // HELP CENTER - Documentation and help articles
+  // ============================================================================
+  helpCategories: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    description: v.optional(v.string()),
+    icon: v.optional(v.string()),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_active", ["isActive"])
+    .index("by_order", ["order"]),
+
+  helpArticles: defineTable({
+    title: v.string(),
+    slug: v.string(),
+    content: v.string(),
+    excerpt: v.optional(v.string()),
+    categoryId: v.id("helpCategories"),
+    tags: v.array(v.string()),
+    order: v.number(),
+    isPublished: v.boolean(),
+    viewCount: v.number(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_category", ["categoryId"])
+    .index("by_published", ["isPublished"])
+    .searchIndex("search_articles", {
+      searchField: "title",
+      filterFields: ["isPublished", "categoryId"],
+    }),
+
+  // ============================================================================
+  // APPROVAL SYSTEM - Rules and requests for quote/deal approvals
+  // ============================================================================
+  approvalRules: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    entityType: v.union(v.literal("quote"), v.literal("deal")),
+    conditions: v.array(
+      v.object({
+        field: v.string(),
+        operator: v.union(
+          v.literal("equals"),
+          v.literal("notEquals"),
+          v.literal("greaterThan"),
+          v.literal("lessThan"),
+          v.literal("greaterThanOrEqual"),
+          v.literal("lessThanOrEqual"),
+          v.literal("contains"),
+          v.literal("in")
+        ),
+        value: v.any(),
+      })
+    ),
+    approvers: v.array(v.id("users")),
+    approvalType: v.union(
+      v.literal("any"),
+      v.literal("all"),
+      v.literal("sequential")
+    ),
+    priority: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity_type", ["entityType"])
+    .index("by_entity_active", ["entityType", "isActive"])
+    .index("by_active", ["isActive"]),
+
+  approvalRequests: defineTable({
+    ruleId: v.id("approvalRules"),
+    ruleName: v.string(),
+    entityType: v.union(v.literal("quote"), v.literal("deal")),
+    entityId: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("rejected")
+    ),
+    requestedBy: v.id("users"),
+    requestedAt: v.number(),
+    currentStep: v.optional(v.number()),
+    requiredApprovers: v.array(v.id("users")),
+    approvalType: v.union(
+      v.literal("any"),
+      v.literal("all"),
+      v.literal("sequential")
+    ),
+    responses: v.array(
+      v.object({
+        userId: v.id("users"),
+        decision: v.union(v.literal("approved"), v.literal("rejected")),
+        comment: v.optional(v.string()),
+        decidedAt: v.number(),
+      })
+    ),
+    entitySnapshot: v.optional(v.any()),
+    completedAt: v.optional(v.number()),
+    completedBy: v.optional(v.id("users")),
+  })
+    .index("by_rule", ["ruleId"])
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["requestedAt"]),
+
+  // ============================================================================
+  // PRODUCTS - Product catalog
+  // ============================================================================
+  products: defineTable({
+    name: v.string(),
+    sku: v.optional(v.string()),
+    description: v.optional(v.string()),
+    category: v.optional(v.string()),
+    unitPrice: v.number(),
+    currency: v.string(),
+    taxable: v.boolean(),
+    taxRate: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_sku", ["sku"])
+    .index("by_category", ["category"])
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"])
+    .searchIndex("search_products", {
+      searchField: "name",
+      filterFields: ["category", "isActive"],
+    }),
+
+  // ============================================================================
+  // PRICE BOOKS - Pricing tiers and custom pricing
+  // ============================================================================
+  priceBooks: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    isDefault: v.boolean(),
+    isActive: v.boolean(),
+    currency: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_default", ["isDefault"])
+    .index("by_active", ["isActive"]),
+
+  // ============================================================================
+  // PRICE BOOK ENTRIES - Product pricing within price books
+  // ============================================================================
+  priceBookEntries: defineTable({
+    priceBookId: v.id("priceBooks"),
+    productId: v.id("products"),
+    listPrice: v.number(),
+    discountedPrice: v.optional(v.number()),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_price_book", ["priceBookId"])
+    .index("by_product", ["productId"])
+    .index("by_price_book_product", ["priceBookId", "productId"]),
+
+  // ============================================================================
+  // API KEYS - REST API authentication
+  // ============================================================================
+  apiKeys: defineTable({
+    name: v.string(),
+    keyHash: v.string(),
+    keyPrefix: v.string(),
+    permissions: v.array(v.string()),
+    rateLimit: v.number(),
+    rateLimitWindow: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    totalRequests: v.number(),
+    expiresAt: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_key_hash", ["keyHash"])
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"]),
+
+  apiRateLimits: defineTable({
+    apiKeyId: v.id("apiKeys"),
+    windowStart: v.number(),
+    requestCount: v.number(),
+  })
+    .index("by_api_key", ["apiKeyId"]),
+
+  apiLogs: defineTable({
+    apiKeyId: v.id("apiKeys"),
+    endpoint: v.string(),
+    method: v.string(),
+    path: v.optional(v.string()),
+    statusCode: v.number(),
+    responseTime: v.number(),
+    requestBody: v.optional(v.any()),
+    queryParams: v.optional(v.any()),
+    errorMessage: v.optional(v.string()),
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    timestamp: v.number(),
+  })
+    .index("by_api_key", ["apiKeyId"])
+    .index("by_timestamp", ["timestamp"]),
+
+  // ============================================================================
+  // VALIDATION RULES - Data Quality Validation System
+  // ============================================================================
+  validationRules: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    entityType: v.union(
+      v.literal("contact"),
+      v.literal("company"),
+      v.literal("deal")
+    ),
+    field: v.string(),
+    ruleType: v.union(
+      v.literal("required"),
+      v.literal("format"),
+      v.literal("range"),
+      v.literal("regex"),
+      v.literal("unique"),
+      v.literal("lookup")
+    ),
+    config: v.object({
+      formatType: v.optional(
+        v.union(
+          v.literal("email"),
+          v.literal("phone"),
+          v.literal("url")
+        )
+      ),
+      min: v.optional(v.number()),
+      max: v.optional(v.number()),
+      pattern: v.optional(v.string()),
+      allowedValues: v.optional(v.array(v.string())),
+    }),
+    errorMessage: v.string(),
+    priority: v.number(),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_entity", ["entityType"])
+    .index("by_entity_field", ["entityType", "field"]),
+
+  // ============================================================================
+  // CAMPAIGNS - Marketing campaigns
+  // ============================================================================
+  campaigns: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    type: v.union(
+      v.literal("email"),
+      v.literal("social"),
+      v.literal("ads"),
+      v.literal("event"),
+      v.literal("referral"),
+      v.literal("other")
+    ),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed")
+    ),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+    budget: v.optional(v.number()),
+    actualSpend: v.number(),
+    currency: v.string(),
+    ownerId: v.optional(v.id("users")),
+    goals: v.optional(
+      v.object({
+        impressions: v.optional(v.number()),
+        clicks: v.optional(v.number()),
+        leads: v.optional(v.number()),
+        revenue: v.optional(v.number()),
+      })
+    ),
+    memberCount: v.number(),
+    convertedCount: v.number(),
+    totalRevenue: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_type", ["type"])
+    .index("by_owner", ["ownerId"])
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"]),
+
+  campaignMembers: defineTable({
+    campaignId: v.id("campaigns"),
+    contactId: v.id("contacts"),
+    status: v.union(
+      v.literal("sent"),
+      v.literal("responded"),
+      v.literal("converted")
+    ),
+    source: v.string(),
+    addedAt: v.number(),
+    firstResponseAt: v.optional(v.number()),
+    convertedAt: v.optional(v.number()),
+    attributedDealId: v.optional(v.id("deals")),
+    attributedRevenue: v.optional(v.number()),
+  })
+    .index("by_campaign", ["campaignId"])
+    .index("by_contact", ["contactId"])
+    .index("by_campaign_contact", ["campaignId", "contactId"])
+    .index("by_campaign_status", ["campaignId", "status"]),
+
+  campaignStats: defineTable({
+    campaignId: v.id("campaigns"),
+    date: v.number(),
+    impressions: v.optional(v.number()),
+    clicks: v.optional(v.number()),
+    leads: v.optional(v.number()),
+    conversions: v.optional(v.number()),
+    revenue: v.optional(v.number()),
+    spend: v.optional(v.number()),
+    clickRate: v.optional(v.number()),
+    conversionRate: v.optional(v.number()),
+    costPerClick: v.optional(v.number()),
+    costPerConversion: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_campaign", ["campaignId"])
+    .index("by_campaign_date", ["campaignId", "date"])
+    .index("by_date", ["date"]),
+
+  // ============================================================================
+  // SEQUENCES - Automated outreach sequences
+  // ============================================================================
+  sequences: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    steps: v.array(
+      v.object({
+        id: v.string(),
+        type: v.union(
+          v.literal("email"),
+          v.literal("sms"),
+          v.literal("call"),
+          v.literal("wait"),
+          v.literal("task")
+        ),
+        delayDays: v.number(),
+        delayHours: v.number(),
+        templateId: v.optional(v.id("emailTemplates")),
+        subject: v.optional(v.string()),
+        content: v.optional(v.string()),
+        taskDescription: v.optional(v.string()),
+      })
+    ),
+    isActive: v.boolean(),
+    enrollmentCount: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_created", ["createdAt"]),
+
+  // ============================================================================
+  // SEQUENCE ENROLLMENTS - Track contacts in sequences
+  // ============================================================================
+  sequenceEnrollments: defineTable({
+    sequenceId: v.id("sequences"),
+    contactId: v.id("contacts"),
+    currentStepIndex: v.number(),
+    status: v.union(
+      v.literal("active"),
+      v.literal("paused"),
+      v.literal("completed"),
+      v.literal("replied"),
+      v.literal("bounced"),
+      v.literal("unsubscribed")
+    ),
+    enrolledAt: v.number(),
+    pausedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    nextStepAt: v.optional(v.number()),
+  })
+    .index("by_sequence", ["sequenceId"])
+    .index("by_contact", ["contactId"])
+    .index("by_status", ["status"])
+    .index("by_sequence_status", ["sequenceId", "status"])
+    .index("by_next_step", ["nextStepAt"]),
+
+  // ============================================================================
+  // SEQUENCE STEP EXECUTIONS - Track individual step executions
+  // ============================================================================
+  sequenceStepExecutions: defineTable({
+    enrollmentId: v.id("sequenceEnrollments"),
+    stepIndex: v.number(),
+    executedAt: v.number(),
+    status: v.union(
+      v.literal("sent"),
+      v.literal("failed"),
+      v.literal("opened"),
+      v.literal("clicked"),
+      v.literal("replied")
+    ),
+    errorMessage: v.optional(v.string()),
+  })
+    .index("by_enrollment", ["enrollmentId"])
+    .index("by_status", ["status"])
+    .index("by_executed", ["executedAt"]),
+});

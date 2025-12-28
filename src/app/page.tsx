@@ -1,0 +1,451 @@
+"use client";
+
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import {
+  Users,
+  Building2,
+  Handshake,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  Plus,
+  Calendar,
+  CheckCircle2,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import Link from "next/link";
+
+// Stat Card Component
+function StatCard({
+  title,
+  value,
+  change,
+  changeLabel,
+  icon: Icon,
+  href,
+}: {
+  title: string;
+  value: string | number;
+  change?: number;
+  changeLabel?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+}) {
+  const isPositive = change && change >= 0;
+
+  return (
+    <Link href={href}>
+      <Card className="transition-all hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-600">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{value}</div>
+          {change !== undefined && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {isPositive ? (
+                <TrendingUp className="h-3 w-3 text-green-500" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-red-500" />
+              )}
+              <span className={isPositive ? "text-green-500" : "text-red-500"}>
+                {isPositive ? "+" : ""}
+                {change}%
+              </span>
+              <span>{changeLabel}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
+
+// Activity Item Component
+function ActivityItem({
+  type,
+  subject,
+  relatedName,
+  time,
+  completed,
+}: {
+  type: string;
+  subject: string;
+  relatedName: string;
+  time: number;
+  completed?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+      <div
+        className={`mt-1 h-2 w-2 rounded-full ${
+          completed ? "bg-green-500" : "bg-blue-500"
+        }`}
+      />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{subject}</p>
+        <p className="text-xs text-muted-foreground">
+          {type} • {relatedName}
+        </p>
+      </div>
+      <span className="text-xs text-muted-foreground whitespace-nowrap">
+        {formatRelativeTime(time)}
+      </span>
+    </div>
+  );
+}
+
+// Deal Card Component
+function DealCard({
+  name,
+  company,
+  amount,
+  stage,
+  stageColor,
+}: {
+  name: string;
+  company?: string;
+  amount?: number;
+  stage: string;
+  stageColor: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{name}</p>
+        {company && (
+          <p className="text-xs text-muted-foreground truncate">{company}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        {amount !== undefined && (
+          <span className="text-sm font-medium">{formatCurrency(amount)}</span>
+        )}
+        <Badge
+          variant="outline"
+          className="text-xs"
+          style={{ borderColor: stageColor, color: stageColor }}
+        >
+          {stage}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  // Note: These queries will need the Convex backend to be running
+  // For now, we'll use placeholder data when queries return undefined
+
+  return (
+    <div className="flex-1 space-y-6 p-6 pt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back. Here&apos;s an overview of your CRM.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Calendar className="mr-2 h-4 w-4" />
+            Last 30 days
+          </Button>
+          <Button size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Quick Add
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Contacts"
+          value="2,350"
+          change={12.5}
+          changeLabel="from last month"
+          icon={Users}
+          href="/contacts"
+        />
+        <StatCard
+          title="Companies"
+          value="185"
+          change={4.3}
+          changeLabel="from last month"
+          icon={Building2}
+          href="/companies"
+        />
+        <StatCard
+          title="Open Deals"
+          value="42"
+          change={-2.1}
+          changeLabel="from last month"
+          icon={Handshake}
+          href="/deals"
+        />
+        <StatCard
+          title="Conversations"
+          value="128"
+          change={18.2}
+          changeLabel="from last month"
+          icon={MessageSquare}
+          href="/conversations"
+        />
+      </div>
+
+      {/* Pipeline Value Card */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-base font-medium">
+              Pipeline Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="text-3xl font-bold">{formatCurrency(1250000)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total value across all stages
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Lead</span>
+                  <span className="font-medium">{formatCurrency(150000)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Qualified</span>
+                  <span className="font-medium">{formatCurrency(320000)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Proposal</span>
+                  <span className="font-medium">{formatCurrency(480000)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Negotiation</span>
+                  <span className="font-medium">{formatCurrency(300000)}</span>
+                </div>
+              </div>
+              <Link href="/deals">
+                <Button variant="outline" size="sm" className="w-full">
+                  View Pipeline
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-medium">
+              Recent Activity
+            </CardTitle>
+            <Link href="/activities">
+              <Button variant="ghost" size="sm">
+                View all
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              <ActivityItem
+                type="Call"
+                subject="Discovery call with Sarah Chen"
+                relatedName="TechCorp Inc"
+                time={Date.now() - 1000 * 60 * 15}
+              />
+              <ActivityItem
+                type="Email"
+                subject="Proposal sent for Enterprise plan"
+                relatedName="Acme Corp"
+                time={Date.now() - 1000 * 60 * 60 * 2}
+              />
+              <ActivityItem
+                type="Task"
+                subject="Follow up on demo request"
+                relatedName="John Smith"
+                time={Date.now() - 1000 * 60 * 60 * 5}
+                completed
+              />
+              <ActivityItem
+                type="Meeting"
+                subject="Quarterly review meeting"
+                relatedName="Global Industries"
+                time={Date.now() - 1000 * 60 * 60 * 24}
+              />
+              <ActivityItem
+                type="Note"
+                subject="Updated contract terms discussion"
+                relatedName="StartupXYZ"
+                time={Date.now() - 1000 * 60 * 60 * 26}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Deals and Tasks */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Recent Deals */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-medium">
+              Recent Deals
+            </CardTitle>
+            <Link href="/deals">
+              <Button variant="ghost" size="sm">
+                View all
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              <DealCard
+                name="Enterprise License"
+                company="TechCorp Inc"
+                amount={85000}
+                stage="Negotiation"
+                stageColor="#F59E0B"
+              />
+              <DealCard
+                name="Annual Subscription"
+                company="Acme Corp"
+                amount={45000}
+                stage="Proposal"
+                stageColor="#8B5CF6"
+              />
+              <DealCard
+                name="Startup Package"
+                company="StartupXYZ"
+                amount={12000}
+                stage="Qualified"
+                stageColor="#3B82F6"
+              />
+              <DealCard
+                name="Consulting Project"
+                company="Global Industries"
+                amount={95000}
+                stage="Lead"
+                stageColor="#6B7280"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Upcoming Tasks */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-medium">
+              Upcoming Tasks
+            </CardTitle>
+            <Link href="/activities">
+              <Button variant="ghost" size="sm">
+                View all
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                {
+                  subject: "Call back Sarah Chen",
+                  due: "Today, 2:00 PM",
+                  priority: "high",
+                },
+                {
+                  subject: "Send proposal to Acme",
+                  due: "Today, 5:00 PM",
+                  priority: "medium",
+                },
+                {
+                  subject: "Review contract terms",
+                  due: "Tomorrow, 10:00 AM",
+                  priority: "medium",
+                },
+                {
+                  subject: "Schedule demo for TechCorp",
+                  due: "Tomorrow, 3:00 PM",
+                  priority: "low",
+                },
+              ].map((task, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0"
+                >
+                  <button className="h-4 w-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{task.subject}</p>
+                    <p className="text-xs text-muted-foreground">{task.due}</p>
+                  </div>
+                  <Badge
+                    variant={
+                      task.priority === "high"
+                        ? "destructive"
+                        : task.priority === "medium"
+                        ? "secondary"
+                        : "outline"
+                    }
+                    className="text-xs"
+                  >
+                    {task.priority}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link href="/contacts/new">
+              <Button variant="outline" className="w-full h-auto py-4 flex-col">
+                <Users className="h-5 w-5 mb-2" />
+                <span className="text-sm">Add Contact</span>
+              </Button>
+            </Link>
+            <Link href="/companies/new">
+              <Button variant="outline" className="w-full h-auto py-4 flex-col">
+                <Building2 className="h-5 w-5 mb-2" />
+                <span className="text-sm">Add Company</span>
+              </Button>
+            </Link>
+            <Link href="/deals/new">
+              <Button variant="outline" className="w-full h-auto py-4 flex-col">
+                <Handshake className="h-5 w-5 mb-2" />
+                <span className="text-sm">Create Deal</span>
+              </Button>
+            </Link>
+            <Link href="/activities/new">
+              <Button variant="outline" className="w-full h-auto py-4 flex-col">
+                <CheckCircle2 className="h-5 w-5 mb-2" />
+                <span className="text-sm">Add Task</span>
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
