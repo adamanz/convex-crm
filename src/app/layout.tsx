@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { CreateFAB } from "@/components/layout/create-fab";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,9 @@ export default function RootLayout({
           richColors
           closeButton
         />
+
+        {/* Create FAB - accessible from all pages */}
+        <CreateFAB />
 
         {/* ElevenLabs ConvAI Widget */}
         {process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID && (
