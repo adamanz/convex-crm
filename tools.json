@@ -1,3 +1,28 @@
 {
-    "tools": []
+  "tools": [
+    {
+      "name": "search-contacts",
+      "description": "Search for contacts in the CRM by name, email, phone, or company. Returns a list of matching contacts with their details."
+    },
+    {
+      "name": "search-companies",
+      "description": "Search for companies in the CRM by name, industry, or location. Returns a list of matching companies with their details."
+    },
+    {
+      "name": "search-deals",
+      "description": "Search for deals in the CRM by name, stage, owner, or amount range. Returns a list of matching deals with their details."
+    },
+    {
+      "name": "create-contact",
+      "description": "Create a new contact in the CRM with name, email, phone, title, and company information."
+    },
+    {
+      "name": "create-company",
+      "description": "Create a new company in the CRM with name, industry, location, website, and employee count information."
+    },
+    {
+      "name": "create-deal",
+      "description": "Create a new deal in the CRM with name, amount, stage, owner, and company information."
+    }
+  ]
 }
