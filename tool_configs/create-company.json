@@ -1,0 +1,58 @@
+{
+  "tool": {
+    "name": "create-company",
+    "description": "Create a new company in the CRM with name, industry, location, website, and employee count information.",
+    "type": "webhook",
+    "endpoint": "${BASE_URL}/api/convex/create/company",
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Company name (required)"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry or business sector"
+        },
+        "location": {
+          "type": "string",
+          "description": "Company location or headquarters address"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Company website URL"
+        },
+        "employees": {
+          "type": "integer",
+          "description": "Number of employees"
+        }
+      },
+      "required": ["name"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the company was created successfully"
+        },
+        "company": {
+          "type": "object",
+          "description": "The newly created company",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "industry": { "type": "string" },
+            "location": { "type": "string" },
+            "website": { "type": "string" },
+            "employees": { "type": "integer" },
+            "createdAt": { "type": "string" }
+          }
+        },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

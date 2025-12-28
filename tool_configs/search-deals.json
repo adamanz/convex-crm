@@ -1,0 +1,57 @@
+{
+  "tool": {
+    "name": "search-deals",
+    "description": "Search for deals in the CRM by name, stage, owner, or amount range. Returns a list of matching deals with their details.",
+    "type": "webhook",
+    "endpoint": "${BASE_URL}/api/convex/search/deals",
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The search query (deal name, stage, or owner)"
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["prospecting", "qualification", "proposal", "negotiation", "won", "lost"],
+          "description": "Filter by deal stage"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of results to return (default: 10)",
+          "default": 10
+        }
+      },
+      "required": ["query"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the search was successful"
+        },
+        "results": {
+          "type": "array",
+          "description": "Array of matching deals",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "amount": { "type": "number" },
+              "stage": { "type": "string" },
+              "owner": { "type": "string" },
+              "company": { "type": "string" },
+              "closedDate": { "type": "string" }
+            }
+          }
+        },
+        "count": {
+          "type": "integer",
+          "description": "Total number of matches found"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "tool": {
+    "name": "create-contact",
+    "description": "Create a new contact in the CRM with name, email, phone, title, and company information.",
+    "type": "webhook",
+    "endpoint": "${BASE_URL}/api/convex/create/contact",
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "description": "Contact's first name"
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Contact's last name (required)"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact's email address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact's phone number"
+        },
+        "title": {
+          "type": "string",
+          "description": "Contact's job title"
+        },
+        "company": {
+          "type": "string",
+          "description": "Contact's company name or company ID"
+        }
+      },
+      "required": ["lastName"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the contact was created successfully"
+        },
+        "contact": {
+          "type": "object",
+          "description": "The newly created contact",
+          "properties": {
+            "id": { "type": "string" },
+            "firstName": { "type": "string" },
+            "lastName": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" },
+            "title": { "type": "string" },
+            "createdAt": { "type": "string" }
+          }
+        },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

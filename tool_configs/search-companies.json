@@ -1,0 +1,51 @@
+{
+  "tool": {
+    "name": "search-companies",
+    "description": "Search for companies in the CRM by name, industry, or location. Returns a list of matching companies with their details.",
+    "type": "webhook",
+    "endpoint": "${BASE_URL}/api/convex/search/companies",
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "The search query (company name, industry, or location)"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of results to return (default: 10)",
+          "default": 10
+        }
+      },
+      "required": ["query"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the search was successful"
+        },
+        "results": {
+          "type": "array",
+          "description": "Array of matching companies",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "industry": { "type": "string" },
+              "location": { "type": "string" },
+              "website": { "type": "string" },
+              "employees": { "type": "integer" }
+            }
+          }
+        },
+        "count": {
+          "type": "integer",
+          "description": "Total number of matches found"
+        }
+      }
+    }
+  }
+}

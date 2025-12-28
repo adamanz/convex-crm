@@ -1,0 +1,64 @@
+{
+  "tool": {
+    "name": "create-deal",
+    "description": "Create a new deal in the CRM with name, amount, stage, owner, and company information.",
+    "type": "webhook",
+    "endpoint": "${BASE_URL}/api/convex/create/deal",
+    "request_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Deal name (required)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Deal amount in USD"
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["prospecting", "qualification", "proposal", "negotiation", "won", "lost"],
+          "description": "Deal stage"
+        },
+        "owner": {
+          "type": "string",
+          "description": "Deal owner name or user ID"
+        },
+        "company": {
+          "type": "string",
+          "description": "Associated company name or ID"
+        },
+        "closeDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Expected close date (YYYY-MM-DD)"
+        }
+      },
+      "required": ["name"]
+    },
+    "response_schema": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the deal was created successfully"
+        },
+        "deal": {
+          "type": "object",
+          "description": "The newly created deal",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "amount": { "type": "number" },
+            "stage": { "type": "string" },
+            "owner": { "type": "string" },
+            "company": { "type": "string" },
+            "closeDate": { "type": "string" },
+            "createdAt": { "type": "string" }
+          }
+        },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}
