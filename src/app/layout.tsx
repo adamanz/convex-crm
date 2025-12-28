@@ -45,9 +45,17 @@ export default function RootLayout({
         {/* ElevenLabs ConvAI Widget v2 */}
         {process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID && (
           <>
-            {React.createElement("elevenlabs-convai", {
-              "agent-id": process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
-            })}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  (function() {
+                    const container = document.createElement('div');
+                    container.innerHTML = '<elevenlabs-convai agent-id="${process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID}"></elevenlabs-convai>';
+                    document.body.appendChild(container.firstChild);
+                  })();
+                `,
+              }}
+            />
             <script
               src="https://unpkg.com/@elevenlabs/convai-widget-embed@beta"
               async
