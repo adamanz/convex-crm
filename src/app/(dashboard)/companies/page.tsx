@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, usePathname } from "next/navigation";
@@ -24,6 +25,7 @@ import {
   Globe,
   Users,
   MapPin,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,7 +36,23 @@ import {
 import { cn } from "@/lib/utils";
 import { CompanyForm } from "@/components/companies/company-form";
 
+function CompaniesPageLoading() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function CompaniesPage() {
+  return (
+    <Suspense fallback={<CompaniesPageLoading />}>
+      <CompaniesPageContent />
+    </Suspense>
+  );
+}
+
+function CompaniesPageContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");

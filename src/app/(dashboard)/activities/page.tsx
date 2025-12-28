@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -42,7 +43,23 @@ import { cn, formatDate } from "@/lib/utils";
 
 type ActivityType = "task" | "call" | "email" | "meeting" | "note" | "all";
 
+function ActivitiesPageLoading() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function ActivitiesPage() {
+  return (
+    <Suspense fallback={<ActivitiesPageLoading />}>
+      <ActivitiesPageContent />
+    </Suspense>
+  );
+}
+
+function ActivitiesPageContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<ActivityType>("all");
@@ -52,7 +69,7 @@ export default function ActivitiesPage() {
 
   // Handle quick add from URL parameter
   useEffect(() => {
-    if (searchParams.get("new") === "true") {
+    if (typeof window !== "undefined" && searchParams.get("new") === "true") {
       const type = searchParams.get("type") || "task";
       if (type === "note") {
         setIsNoteDialogOpen(true);

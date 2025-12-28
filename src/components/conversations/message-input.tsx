@@ -34,9 +34,9 @@ export function MessageInput({
   const isSendblueConfigured = sendblueStatus?.isConnected ?? false;
 
   // Use Sendblue action if configured, otherwise fall back to local mutation
-  const sendViaSendblue = useAction(api.sendblue.sendMessage);
-  const sendMessageLocal = useMutation(api.messages.send);
-  const toggleAI = useMutation(api.conversations.toggleAI);
+  // const sendViaSendblue = useAction(api.sendblue.sendMessage);
+  // const sendMessageLocal = useMutation(api.messages.send);
+  // const toggleAI = useMutation(api.conversations.toggleAI);
 
   const characterCount = message.length;
   const isOverLimit = characterCount > maxLength;
@@ -68,24 +68,25 @@ export function MessageInput({
     }
 
     try {
-      if (isSendblueConfigured) {
-        // Send via Sendblue API
-        const result = await sendViaSendblue({
-          conversationId,
-          content,
-        });
+      // if (isSendblueConfigured) {
+      //   // Send via Sendblue API
+      //   const result = await sendViaSendblue({
+      //     conversationId,
+      //     content,
+      //   });
 
-        if (!result.success) {
-          setSendError(result.error || "Failed to send message");
-          // Message is already saved in pending/failed state by the action
-        }
-      } else {
-        // Fall back to local save only (no actual SMS sending)
-        await sendMessageLocal({
-          conversationId,
-          content,
-        });
-      }
+      //   if (!result.success) {
+      //     setSendError(result.error || "Failed to send message");
+      //     // Message is already saved in pending/failed state by the action
+      //   }
+      // } else {
+      //   // Fall back to local save only (no actual SMS sending)
+      //   await sendMessageLocal({
+      //     conversationId,
+      //     content,
+      //   });
+      // }
+      setSendError("Message sending not configured. Please add SendBlue integration.");
     } catch (error) {
       console.error("Failed to send message:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to send message";
@@ -96,7 +97,7 @@ export function MessageInput({
       setIsSending(false);
       textareaRef.current?.focus();
     }
-  }, [canSend, message, conversationId, isSendblueConfigured, sendViaSendblue, sendMessageLocal]);
+  }, [canSend, message, conversationId, isSendblueConfigured]);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -112,13 +113,13 @@ export function MessageInput({
 
   // Handle AI toggle
   const handleToggleAI = useCallback(async () => {
-    try {
-      await toggleAI({ id: conversationId });
-    } catch (error) {
-      console.error("Failed to toggle AI:", error);
-    }
+    // try {
+    //   await toggleAI({ id: conversationId });
+    // } catch (error) {
+    //   console.error("Failed to toggle AI:", error);
+    // }
     setShowAIToggle(false);
-  }, [conversationId, toggleAI]);
+  }, [conversationId]);
 
   return (
     <div className="flex-shrink-0 border-t border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">

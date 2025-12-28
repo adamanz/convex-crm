@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -40,12 +41,12 @@ export default function RootLayout({
         {/* ElevenLabs ConvAI Widget */}
         {process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID && (
           <>
-            <elevenlabs-convai
-              agent-id={process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID}
-              variant="expanded"
-              avatar-orb-color-1="#6DB035"
-              avatar-orb-color-2="#F5CABB"
-            />
+            {React.createElement("elevenlabs-convai", {
+              "agent-id": process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
+              "variant": "expanded",
+              "avatar-orb-color-1": "#6DB035",
+              "avatar-orb-color-2": "#F5CABB",
+            })}
             <script
               src="https://unpkg.com/@elevenlabs/convai-widget-embed"
               async

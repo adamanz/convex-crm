@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
@@ -38,7 +39,23 @@ import { toast } from "sonner";
 
 type DealStatus = "open" | "won" | "lost";
 
+function DealsPageLoading() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function DealsPage() {
+  return (
+    <Suspense fallback={<DealsPageLoading />}>
+      <DealsPageContent />
+    </Suspense>
+  );
+}
+
+function DealsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();

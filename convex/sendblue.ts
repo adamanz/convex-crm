@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 /**
@@ -37,13 +37,32 @@ export const sendSMS = mutation({
 
     const result = await response.json();
 
-    // Store message in conversations table
-    await ctx.db.insert("conversations", {
-      contactId: args.contactId,
-      type: "sms",
+    // Find or create conversation
+    const existingConversation = await ctx.db
+      .query("conversations")
+      .withIndex("by_contact", (q) => q.eq("contactId", args.contactId))
+      .first();
+
+    let conversationId = existingConversation?._id;
+    if (!conversationId) {
+      conversationId = await ctx.db.insert("conversations", {
+        phoneNumber: contact.phone,
+        sendblueNumber: process.env.SENDBLUE_NUMBER || "",
+        contactId: args.contactId,
+        status: "active",
+        isIMessage: false,
+        aiEnabled: false,
+        messageCount: 0,
+        lastMessageAt: Date.now(),
+        createdAt: Date.now(),
+      } as any);
+    }
+
+    // Store message in messages table
+    await ctx.db.insert("messages", {
+      conversationId,
       direction: "outbound",
       content: args.message,
-      timestamp: Date.now(),
       status: "sent",
     } as any);
 
@@ -57,10 +76,20 @@ export const sendSMS = mutation({
 export const getMessageHistory = query({
   args: { contactId: v.id("contacts") },
   handler: async (ctx, args) => {
-    const messages = await ctx.db
+    // Find conversation for contact
+    const conversation = await ctx.db
       .query("conversations")
-      .filter((q) => q.eq(q.field("contactId"), args.contactId))
-      .filter((q) => q.eq(q.field("type"), "sms"))
+      .withIndex("by_contact", (q) => q.eq("contactId", args.contactId))
+      .first();
+
+    if (!conversation) {
+      return [];
+    }
+
+    // Get messages for this conversation
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversationId", conversation._id))
       .order("desc")
       .take(50);
 
@@ -81,11 +110,70 @@ export const sendBulkSMS = mutation({
 
     for (const contactId of args.contactIds) {
       try {
-        const result = await ctx.scheduler.runAfter(0, sendSMS, {
-          contactId,
-          message: args.message,
+        // Get contact details
+        const contact = await ctx.db.get(contactId);
+        if (!contact || !contact.phone) {
+          results.push({
+            contactId,
+            success: false,
+            error: "Contact not found or has no phone number"
+          });
+          continue;
+        }
+
+        // Call SendBlue API
+        const response = await fetch("https://api.sendblue.co/api/send-message", {
+          method: "POST",
+          headers: {
+            "sb-api-key-id": process.env.SENDBLUE_API_KEY_ID || "",
+            "sb-api-secret-key": process.env.SENDBLUE_API_SECRET_KEY || "",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            number: contact.phone,
+            content: args.message,
+          }),
         });
-        results.push({ contactId, success: true, result });
+
+        if (!response.ok) {
+          results.push({
+            contactId,
+            success: false,
+            error: `SendBlue API error: ${response.statusText}`
+          });
+          continue;
+        }
+
+        // Find or create conversation
+        const existingConversation = await ctx.db
+          .query("conversations")
+          .withIndex("by_contact", (q) => q.eq("contactId", contactId))
+          .first();
+
+        let conversationId = existingConversation?._id;
+        if (!conversationId) {
+          conversationId = await ctx.db.insert("conversations", {
+            phoneNumber: contact.phone,
+            sendblueNumber: process.env.SENDBLUE_NUMBER || "",
+            contactId,
+            status: "active",
+            isIMessage: false,
+            aiEnabled: false,
+            messageCount: 0,
+            lastMessageAt: Date.now(),
+            createdAt: Date.now(),
+          } as any);
+        }
+
+        // Store message in messages table
+        await ctx.db.insert("messages", {
+          conversationId,
+          direction: "outbound",
+          content: args.message,
+          status: "sent",
+        } as any);
+
+        results.push({ contactId, success: true });
       } catch (error) {
         results.push({ contactId, success: false, error: String(error) });
       }
@@ -110,6 +198,18 @@ export const getConfig = query({
 });
 
 /**
+ * Check if SendBlue is configured
+ */
+export const isConfigured = query({
+  handler: async (ctx) => {
+    return {
+      isConnected: !!process.env.SENDBLUE_API_KEY_ID,
+      enabled: !!process.env.SENDBLUE_API_KEY_ID,
+    };
+  },
+});
+
+/**
  * Receive incoming SMS webhook from SendBlue
  */
 export const receiveIncomingSMS = mutation({
@@ -119,16 +219,124 @@ export const receiveIncomingSMS = mutation({
     senderId: v.string(),
   },
   handler: async (ctx, args) => {
-    // Store incoming message in conversations table
-    const conversation = await ctx.db.insert("conversations", {
-      contactId: args.contactId,
-      type: "sms",
+    // Find or create conversation
+    let conversation = await ctx.db
+      .query("conversations")
+      .withIndex("by_contact", (q) => q.eq("contactId", args.contactId))
+      .first();
+
+    let conversationId: Id<"conversations">;
+    if (!conversation) {
+      const contact = await ctx.db.get(args.contactId);
+      conversationId = await ctx.db.insert("conversations", {
+        phoneNumber: contact?.phone || args.senderId,
+        sendblueNumber: process.env.SENDBLUE_NUMBER || "",
+        contactId: args.contactId,
+        status: "active",
+        isIMessage: false,
+        aiEnabled: false,
+        messageCount: 0,
+        lastMessageAt: Date.now(),
+        createdAt: Date.now(),
+      } as any);
+    } else {
+      conversationId = conversation._id;
+    }
+
+    // Store message in messages table
+    const messageId = await ctx.db.insert("messages", {
+      conversationId,
       direction: "inbound",
       content: args.message,
-      timestamp: Date.now(),
-      status: "received",
+      status: "delivered",
     } as any);
 
-    return conversation;
+    return messageId;
+  },
+});
+
+/**
+ * Internal: Find or create a conversation for SendBlue webhook
+ */
+export const findOrCreateConversation = internalMutation({
+  args: {
+    phoneNumber: v.string(),
+    sendblueNumber: v.string(),
+    isIMessage: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    // Find existing conversation or create new one
+    const existing = await ctx.db
+      .query("conversations")
+      .withIndex("by_phone", (q) => q.eq("phoneNumber", args.phoneNumber))
+      .first();
+
+    if (existing) {
+      return existing._id;
+    }
+
+    const conversationId = await ctx.db.insert("conversations", {
+      phoneNumber: args.phoneNumber,
+      sendblueNumber: args.sendblueNumber,
+      status: "active",
+      isIMessage: args.isIMessage,
+      aiEnabled: false,
+      messageCount: 0,
+      lastMessageAt: Date.now(),
+      createdAt: Date.now(),
+    } as any);
+
+    return conversationId;
+  },
+});
+
+/**
+ * Internal: Create inbound message from SendBlue webhook
+ */
+export const createInboundMessage = internalMutation({
+  args: {
+    conversationId: v.id("conversations"),
+    content: v.string(),
+    mediaUrl: v.optional(v.string()),
+    messageHandle: v.string(),
+    service: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const message = await ctx.db.insert("messages", {
+      conversationId: args.conversationId,
+      direction: "inbound",
+      content: args.content,
+      mediaUrl: args.mediaUrl,
+      status: "delivered",
+    } as any);
+
+    return message;
+  },
+});
+
+/**
+ * Internal: Update message status from SendBlue webhook
+ */
+export const updateMessageStatusFromWebhook = internalMutation({
+  args: {
+    messageHandle: v.string(),
+    status: v.string(),
+    errorMessage: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Find all messages and update those matching the handle
+    const allMessages = await ctx.db.query("messages").collect();
+    let updated = false;
+
+    for (const msg of allMessages) {
+      if (msg.content === args.messageHandle || (msg as any).messageHandle === args.messageHandle) {
+        await ctx.db.patch(msg._id, {
+          status: args.status === "delivered" ? "delivered" : "failed",
+        });
+        updated = true;
+      }
+    }
+
+    return { updated };
   },
 });

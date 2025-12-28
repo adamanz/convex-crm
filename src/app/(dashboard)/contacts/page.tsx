@@ -62,7 +62,7 @@ function ContactsPageContent() {
 
   // Handle quick add from URL parameter
   useEffect(() => {
-    if (searchParams.get("new") === "true") {
+    if (typeof window !== "undefined" && searchParams.get("new") === "true") {
       setIsAddDialogOpen(true);
       window.history.replaceState({}, "", pathname);
     }
