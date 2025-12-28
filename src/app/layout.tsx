@@ -42,17 +42,14 @@ export default function RootLayout({
         {/* Create FAB - accessible from all pages */}
         <CreateFAB />
 
-        {/* ElevenLabs ConvAI Widget */}
+        {/* ElevenLabs ConvAI Widget v2 */}
         {process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID && (
           <>
             {React.createElement("elevenlabs-convai", {
               "agent-id": process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID,
-              "variant": "expanded",
-              "avatar-orb-color-1": "#6DB035",
-              "avatar-orb-color-2": "#F5CABB",
             })}
             <script
-              src="https://unpkg.com/@elevenlabs/convai-widget-embed"
+              src="https://unpkg.com/@elevenlabs/convai-widget-embed@beta"
               async
               type="text/javascript"
             />
