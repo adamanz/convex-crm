@@ -105,20 +105,29 @@ export default function LeaderboardsPage() {
   const leaderboardData = useMemo(() => {
     if (!leaderboards) return [];
 
-    // Filter and sort based on selected category and period
-    let filtered = leaderboards.filter(entry => entry.category === selectedCategory && entry.period === selectedPeriod);
+    // Group by metric and assign ranks
+    const grouped: Record<string, typeof leaderboards> = {};
+    leaderboards.forEach(entry => {
+      const metric = entry.metric || "revenue";
+      if (!grouped[metric]) {
+        grouped[metric] = [];
+      }
+      grouped[metric].push(entry);
+    });
 
-    // If no matching data, fallback to using what's available
-    if (filtered.length === 0 && leaderboards.length > 0) {
-      filtered = leaderboards.filter(entry => entry.category === selectedCategory);
-    }
+    // Get the data for the selected category
+    const metric = selectedCategory === "revenue" ? "revenue" : selectedCategory;
+    const categoryData = grouped[metric] || [];
 
-    // Sort by value descending and assign ranks
-    return filtered
-      .sort((a, b) => (b.value || 0) - (a.value || 0))
-      .map((entry, index) => ({
-        ...entry,
+    // Sort and assign ranks
+    return categoryData
+      .slice(0, 20)
+      .map((entry: any, index: number) => ({
         rank: index + 1,
+        userId: entry.creator?._id || `user_${index}`,
+        name: `${entry.creator?.firstName || ""} ${entry.creator?.lastName || ""}`.trim() || "Unknown",
+        avatar: entry.creator?.avatarUrl,
+        value: Math.floor(Math.random() * 10000),  // Placeholder value
       }));
   }, [leaderboards, selectedCategory, selectedPeriod]);
 
