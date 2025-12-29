@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -155,8 +155,29 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
-  // Note: These queries will need the Convex backend to be running
-  // For now, we'll use placeholder data when queries return undefined
+  // Fetch real data from Convex
+  const contacts = useQuery(api.contacts.list, { paginationOpts: { numPage: 100 } }) || [];
+  const companies = useQuery(api.companies.list, { paginationOpts: { numPage: 100 } }) || [];
+  const deals = useQuery(api.deals.list, { paginationOpts: { numPage: 100 } }) || [];
+  const activities = useQuery(api.activities.list, { paginationOpts: { numPage: 100 } }) || [];
+
+  // Calculate real statistics
+  const contactsCount = contacts?.page?.length || 0;
+  const companiesCount = companies?.page?.length || 0;
+  const openDealsCount = deals?.page?.filter((d: any) => d.stage !== "won" && d.stage !== "lost").length || 0;
+  const activitiesCount = activities?.page?.length || 0;
+
+  // Calculate pipeline value by stage
+  const pipelineByStage = useMemo(() => {
+    if (!deals?.page) return {};
+    return (deals.page as any[]).reduce((acc: Record<string, number>, deal: any) => {
+      const stage = deal.stage || "lead";
+      acc[stage] = (acc[stage] || 0) + (deal.value || 0);
+      return acc;
+    }, {});
+  }, [deals]);
+
+  const totalPipelineValue = Object.values(pipelineByStage).reduce((sum: number, val: any) => sum + val, 0);
 
   const handleQuickAdd = (href: string) => {
     router.push(href);
@@ -213,35 +234,27 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Contacts"
-          value="2,350"
-          change={12.5}
-          changeLabel="from last month"
+          value={contactsCount}
           icon={Users}
           href="/contacts"
         />
         <StatCard
           title="Companies"
-          value="185"
-          change={4.3}
-          changeLabel="from last month"
+          value={companiesCount}
           icon={Building2}
           href="/companies"
         />
         <StatCard
           title="Open Deals"
-          value="42"
-          change={-2.1}
-          changeLabel="from last month"
+          value={openDealsCount}
           icon={Handshake}
           href="/deals"
         />
         <StatCard
-          title="Conversations"
-          value="128"
-          change={18.2}
-          changeLabel="from last month"
+          title="Activities"
+          value={activitiesCount}
           icon={MessageSquare}
-          href="/conversations"
+          href="/activities"
         />
       </div>
 
@@ -256,28 +269,18 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <div className="text-3xl font-bold">{formatCurrency(1250000)}</div>
+                <div className="text-3xl font-bold">{formatCurrency(totalPipelineValue)}</div>
                 <p className="text-xs text-muted-foreground">
                   Total value across all stages
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Lead</span>
-                  <span className="font-medium">{formatCurrency(150000)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Qualified</span>
-                  <span className="font-medium">{formatCurrency(320000)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Proposal</span>
-                  <span className="font-medium">{formatCurrency(480000)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Negotiation</span>
-                  <span className="font-medium">{formatCurrency(300000)}</span>
-                </div>
+                {Object.entries(pipelineByStage).map(([stage, value]) => (
+                  <div key={stage} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground capitalize">{stage}</span>
+                    <span className="font-medium">{formatCurrency(value as number)}</span>
+                  </div>
+                ))}
               </div>
               <Link href="/deals">
                 <Button variant="outline" size="sm" className="w-full">
@@ -304,37 +307,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-0">
-              <ActivityItem
-                type="Call"
-                subject="Discovery call with Sarah Chen"
-                relatedName="TechCorp Inc"
-                time={Date.now() - 1000 * 60 * 15}
-              />
-              <ActivityItem
-                type="Email"
-                subject="Proposal sent for Enterprise plan"
-                relatedName="Acme Corp"
-                time={Date.now() - 1000 * 60 * 60 * 2}
-              />
-              <ActivityItem
-                type="Task"
-                subject="Follow up on demo request"
-                relatedName="John Smith"
-                time={Date.now() - 1000 * 60 * 60 * 5}
-                completed
-              />
-              <ActivityItem
-                type="Meeting"
-                subject="Quarterly review meeting"
-                relatedName="Global Industries"
-                time={Date.now() - 1000 * 60 * 60 * 24}
-              />
-              <ActivityItem
-                type="Note"
-                subject="Updated contract terms discussion"
-                relatedName="StartupXYZ"
-                time={Date.now() - 1000 * 60 * 60 * 26}
-              />
+              {activities?.page && activities.page.length > 0 ? (
+                activities.page.slice(0, 5).map((activity: any) => (
+                  <ActivityItem
+                    key={activity._id}
+                    type={activity.type || "Activity"}
+                    subject={activity.subject || "No subject"}
+                    relatedName={activity.relatedTo || ""}
+                    time={activity._creationTime || Date.now()}
+                    completed={activity.completed}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground py-4">No activities yet</p>
+              )}
             </div>
           </CardContent>
         </Card>
