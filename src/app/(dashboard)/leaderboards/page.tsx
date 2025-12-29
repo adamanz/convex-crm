@@ -367,9 +367,9 @@ export default function LeaderboardsPage() {
                       </div>
 
                       {/* Badges */}
-                      {entry.badges && entry.badges.length > 0 && (
+                      {Array.isArray((entry as LeaderEntry).badges) && (entry as LeaderEntry).badges!.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {entry.badges.map((badge, i) => (
+                          {(entry as LeaderEntry).badges!.map((badge, i) => (
                             <Badge
                               key={i}
                               variant="secondary"
