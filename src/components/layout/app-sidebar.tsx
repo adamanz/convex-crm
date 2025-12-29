@@ -37,7 +37,6 @@ import {
   FileText,
   Phone,
   Plus,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShortcuts } from "@/components/shortcuts";
@@ -159,7 +158,6 @@ export function AppSidebar({ user, onSignOut }: AppSidebarProps) {
       title: "Sales Tools",
       defaultOpen: false,
       items: [
-        { label: "Momentum", href: "/momentum", icon: Sparkles },
         { label: "Forecasting", href: "/forecasting", icon: TrendingUp },
         { label: "Leaderboards", href: "/leaderboards", icon: Trophy },
         { label: "Goals", href: "/settings/goals", icon: Target },

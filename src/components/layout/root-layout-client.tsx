@@ -8,6 +8,7 @@ import { SearchResultsModal } from "@/components/agent/SearchResultsModal";
 import { AgentResultsProvider, useAgentResults } from "@/contexts/agent-results-context";
 import { SearchResult } from "@/components/agent/SearchResultsModal";
 import { ElevenLabsSetup } from "@/components/layout/elevenlabs-setup";
+import { ConvexClientProvider } from "@/components/providers/convex-provider";
 
 interface RootLayoutClientProps {
   children: React.ReactNode;
@@ -108,8 +109,10 @@ function RootLayoutClientContent({ children }: RootLayoutClientProps) {
 
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
   return (
-    <AgentResultsProvider>
-      <RootLayoutClientContent>{children}</RootLayoutClientContent>
-    </AgentResultsProvider>
+    <ConvexClientProvider>
+      <AgentResultsProvider>
+        <RootLayoutClientContent>{children}</RootLayoutClientContent>
+      </AgentResultsProvider>
+    </ConvexClientProvider>
   );
 }

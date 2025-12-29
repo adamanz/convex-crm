@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -152,7 +150,7 @@ function DealCard({
   );
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const router = useRouter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -309,8 +307,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-0">
-              {activities?.page && activities.page.length > 0 ? (
-                activities.page.slice(0, 5).map((activity: any) => (
+              {activities?.items && activities.items.length > 0 ? (
+                activities.items.slice(0, 5).map((activity: any) => (
                   <ActivityItem
                     key={activity._id}
                     type={activity.type || "Activity"}
@@ -378,8 +376,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {activities?.page && activities.page.length > 0 ? (
-                activities.page
+              {activities?.items && activities.items.length > 0 ? (
+                activities.items
                   .filter((act: any) => act.type === "Task" && !act.completed)
                   .slice(0, 4)
                   .map((task: any) => (
@@ -449,5 +447,13 @@ export default function Dashboard() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="flex-1 p-6">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
