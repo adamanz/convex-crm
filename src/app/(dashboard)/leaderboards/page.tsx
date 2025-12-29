@@ -128,6 +128,8 @@ export default function LeaderboardsPage() {
         name: `${entry.creator?.firstName || ""} ${entry.creator?.lastName || ""}`.trim() || "Unknown",
         avatar: entry.creator?.avatarUrl,
         value: Math.floor(Math.random() * 10000),  // Placeholder value
+        badges: index < 3 ? ["Top Performer"] : [],
+        streak: index < 5 ? Math.floor(Math.random() * 10) + 1 : undefined,
       }));
   }, [leaderboards, selectedCategory, selectedPeriod]);
 
@@ -383,11 +385,11 @@ export default function LeaderboardsPage() {
                       )}
 
                       {/* Streak */}
-                      {entry.streak && (
+                      {(entry as LeaderEntry).streak && (
                         <div className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 dark:bg-orange-950">
                           <Flame className="h-3 w-3 text-orange-600 dark:text-orange-400" />
                           <span className="text-xs font-medium text-orange-700 dark:text-orange-300">
-                            {entry.streak} day streak
+                            {(entry as LeaderEntry).streak} day streak
                           </span>
                         </div>
                       )}
