@@ -156,16 +156,16 @@ export default function Dashboard() {
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
   // Fetch real data from Convex
-  const contacts = useQuery(api.contacts.list, { paginationOpts: { numPage: 100 } }) || [];
-  const companies = useQuery(api.companies.list, { paginationOpts: { numPage: 100 } }) || [];
-  const deals = useQuery(api.deals.list, { paginationOpts: { numPage: 100 } }) || [];
-  const activities = useQuery(api.activities.list, { paginationOpts: { numPage: 100 } }) || [];
+  const contacts = useQuery(api.contacts.list, { paginationOpts: { numItems: 100 } });
+  const companies = useQuery(api.companies.list, { paginationOpts: { numItems: 100 } });
+  const deals = useQuery(api.deals.list, { paginationOpts: { numItems: 100 } });
+  const activities = useQuery(api.activities.feed, { limit: 100 });
 
   // Calculate real statistics
   const contactsCount = contacts?.page?.length || 0;
   const companiesCount = companies?.page?.length || 0;
   const openDealsCount = deals?.page?.filter((d: any) => d.stage !== "won" && d.stage !== "lost").length || 0;
-  const activitiesCount = activities?.page?.length || 0;
+  const activitiesCount = activities?.items?.length || 0;
 
   // Calculate pipeline value by stage
   const pipelineByStage = useMemo(() => {
