@@ -1665,4 +1665,211 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_earned", ["earnedAt"])
     .index("by_badge_type", ["badgeType"]),
+
+  sentinelWorkspaces: defineTable({
+    slackTeamId: v.string(),
+    slackTeamDomain: v.optional(v.string()),
+    slackBotUserId: v.optional(v.string()),
+    encryptedBotToken: v.optional(v.string()),
+    slackConnected: v.boolean(),
+    salesforceOrgId: v.optional(v.string()),
+    salesforceConnected: v.boolean(),
+    healthStatus: v.optional(
+      v.union(v.literal("healthy"), v.literal("degraded"), v.literal("disconnected"))
+    ),
+    defaultThresholds: v.optional(
+      v.object({
+        expansion: v.optional(v.number()),
+        risk: v.optional(v.number()),
+        buying_intent: v.optional(v.number()),
+        usage: v.optional(v.number()),
+        churn: v.optional(v.number()),
+        relationship: v.optional(v.number()),
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_team", ["slackTeamId"])
+    .index("by_health", ["healthStatus"]),
+
+  sentinelCustomers: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    displayName: v.string(),
+    slackAliases: v.optional(v.array(v.string())),
+    salesforceAccountId: v.optional(v.string()),
+    healthScore: v.optional(v.number()),
+    lastSignalAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_workspace_account", ["workspaceId", "salesforceAccountId"]),
+
+  sentinelChannels: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    slackChannelId: v.string(),
+    name: v.string(),
+    isMonitored: v.boolean(),
+    isPrivate: v.optional(v.boolean()),
+    customerId: v.optional(v.id("sentinelCustomers")),
+    lastMessageTs: v.optional(v.number()),
+    lastSignalId: v.optional(v.id("sentinelSignals")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_workspace_monitored", ["workspaceId", "isMonitored"])
+    .index("by_customer", ["customerId"]),
+
+  sentinelMessages: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    channelId: v.id("sentinelChannels"),
+    slackMessageTs: v.string(),
+    slackUserId: v.optional(v.string()),
+    text: v.string(),
+    attachments: v.optional(v.any()),
+    rawPayload: v.optional(v.any()),
+    processed: v.boolean(),
+    processedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_channel_ts", ["channelId", "slackMessageTs"])
+    .index("by_workspace", ["workspaceId"]),
+
+  sentinelRules: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    name: v.string(),
+    signalType: v.optional(
+      v.union(
+        v.literal("expansion"),
+        v.literal("risk"),
+        v.literal("buying_intent"),
+        v.literal("usage"),
+        v.literal("churn"),
+        v.literal("relationship")
+      )
+    ),
+    keywords: v.array(v.string()),
+    excludedKeywords: v.optional(v.array(v.string())),
+    channelBoost: v.optional(v.number()),
+    senderBoosts: v.optional(
+      v.object({
+        customer: v.optional(v.number()),
+        internal: v.optional(v.number()),
+      })
+    ),
+    threshold: v.number(),
+    isActive: v.boolean(),
+    createdBy: v.optional(v.id("users")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_workspace_signal", ["workspaceId", "signalType"])
+    .index("by_active", ["isActive"]),
+
+  sentinelSignals: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    channelId: v.id("sentinelChannels"),
+    customerId: v.optional(v.id("sentinelCustomers")),
+    sourceMessageId: v.optional(v.id("sentinelMessages")),
+    type: v.union(
+      v.literal("expansion"),
+      v.literal("risk"),
+      v.literal("buying_intent"),
+      v.literal("usage"),
+      v.literal("churn"),
+      v.literal("relationship")
+    ),
+    confidence: v.number(),
+    sentiment: v.optional(
+      v.union(
+        v.literal("positive"),
+        v.literal("neutral"),
+        v.literal("negative"),
+        v.literal("urgent")
+      )
+    ),
+    sentimentScore: v.optional(v.number()),
+    messageTs: v.optional(v.number()),
+    authorId: v.optional(v.string()),
+    authorType: v.optional(
+      v.union(v.literal("customer"), v.literal("internal"), v.literal("unknown"))
+    ),
+    text: v.string(),
+    contextWindow: v.optional(
+      v.array(
+        v.object({
+          slackMessageTs: v.optional(v.string()),
+          text: v.string(),
+          slackUserId: v.optional(v.string()),
+          timestamp: v.optional(v.number()),
+        })
+      )
+    ),
+    status: v.union(
+      v.literal("new"),
+      v.literal("handled"),
+      v.literal("dismissed"),
+      v.literal("snoozed"),
+      v.literal("synced")
+    ),
+    parentSignalId: v.optional(v.id("sentinelSignals")),
+    ruleMatches: v.optional(v.array(v.id("sentinelRules"))),
+    recommendedAction: v.optional(v.string()),
+    salesforceTaskId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_customer", ["customerId"])
+    .index("by_channel", ["channelId"])
+    .index("by_source_message", ["sourceMessageId"])
+    .index("by_type_created", ["type", "createdAt"])
+    .index("by_status", ["status"]),
+
+  sentinelSyncJobs: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    signalId: v.id("sentinelSignals"),
+    target: v.union(
+      v.literal("salesforce"),
+      v.literal("hubspot"),
+      v.literal("webhook")
+    ),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("in_progress"),
+      v.literal("succeeded"),
+      v.literal("failed"),
+      v.literal("cancelled")
+    ),
+    attemptCount: v.number(),
+    lastError: v.optional(v.string()),
+    externalId: v.optional(v.string()),
+    lastAttemptAt: v.optional(v.number()),
+    nextAttemptAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_signal", ["signalId"])
+    .index("by_status", ["status"])
+    .index("by_target_status", ["target", "status"]),
+
+  sentinelNotifications: defineTable({
+    workspaceId: v.id("sentinelWorkspaces"),
+    userId: v.optional(v.id("users")),
+    type: v.union(v.literal("immediate"), v.literal("digest"), v.literal("alert")),
+    deliveryMethod: v.union(v.literal("slack_dm"), v.literal("email")),
+    signalId: v.optional(v.id("sentinelSignals")),
+    channelId: v.optional(v.id("sentinelChannels")),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
+    scheduledFor: v.optional(v.number()),
+    sentAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_user_status", ["userId", "status"])
+    .index("by_signal", ["signalId"]),
 });

@@ -101,10 +101,26 @@ export default function LeaderboardsPage() {
     isActive: true,
   });
 
-  // For now, use mock data. In production, this would come from the backend
+  // Use real backend data or empty array if not available
   const leaderboardData = useMemo(() => {
-    return generateMockLeaderboardData(selectedCategory, selectedPeriod);
-  }, [selectedCategory, selectedPeriod]);
+    if (!leaderboards) return [];
+
+    // Filter and sort based on selected category and period
+    let filtered = leaderboards.filter(entry => entry.category === selectedCategory && entry.period === selectedPeriod);
+
+    // If no matching data, fallback to using what's available
+    if (filtered.length === 0 && leaderboards.length > 0) {
+      filtered = leaderboards.filter(entry => entry.category === selectedCategory);
+    }
+
+    // Sort by value descending and assign ranks
+    return filtered
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
+      .map((entry, index) => ({
+        ...entry,
+        rank: index + 1,
+      }));
+  }, [leaderboards, selectedCategory, selectedPeriod]);
 
   const getCategoryConfig = (category: LeaderboardCategory) => {
     const configs = {

@@ -343,34 +343,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-0">
-              <DealCard
-                name="Enterprise License"
-                company="TechCorp Inc"
-                amount={85000}
-                stage="Negotiation"
-                stageColor="#F59E0B"
-              />
-              <DealCard
-                name="Annual Subscription"
-                company="Acme Corp"
-                amount={45000}
-                stage="Proposal"
-                stageColor="#8B5CF6"
-              />
-              <DealCard
-                name="Startup Package"
-                company="StartupXYZ"
-                amount={12000}
-                stage="Qualified"
-                stageColor="#3B82F6"
-              />
-              <DealCard
-                name="Consulting Project"
-                company="Global Industries"
-                amount={95000}
-                stage="Lead"
-                stageColor="#6B7280"
-              />
+              {deals?.page && deals.page.length > 0 ? (
+                deals.page.slice(0, 4).map((deal: any) => (
+                  <DealCard
+                    key={deal._id}
+                    name={deal.name || "Untitled Deal"}
+                    company={deal.company?.name}
+                    amount={deal.value}
+                    stage={deal.stage || "lead"}
+                    stageColor="#6B7280"
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground py-4">No deals yet</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -390,51 +376,37 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                {
-                  subject: "Call back Sarah Chen",
-                  due: "Today, 2:00 PM",
-                  priority: "high",
-                },
-                {
-                  subject: "Send proposal to Acme",
-                  due: "Today, 5:00 PM",
-                  priority: "medium",
-                },
-                {
-                  subject: "Review contract terms",
-                  due: "Tomorrow, 10:00 AM",
-                  priority: "medium",
-                },
-                {
-                  subject: "Schedule demo for TechCorp",
-                  due: "Tomorrow, 3:00 PM",
-                  priority: "low",
-                },
-              ].map((task, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0"
-                >
-                  <button className="h-4 w-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{task.subject}</p>
-                    <p className="text-xs text-muted-foreground">{task.due}</p>
-                  </div>
-                  <Badge
-                    variant={
-                      task.priority === "high"
-                        ? "destructive"
-                        : task.priority === "medium"
-                        ? "secondary"
-                        : "outline"
-                    }
-                    className="text-xs"
-                  >
-                    {task.priority}
-                  </Badge>
-                </div>
-              ))}
+              {activities?.page && activities.page.length > 0 ? (
+                activities.page
+                  .filter((act: any) => act.type === "Task" && !act.completed)
+                  .slice(0, 4)
+                  .map((task: any) => (
+                    <div
+                      key={task._id}
+                      className="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0"
+                    >
+                      <button className="h-4 w-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{task.subject || "Task"}</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(task._creationTime)}</p>
+                      </div>
+                      <Badge
+                        variant={
+                          task.priority === "high"
+                            ? "destructive"
+                            : task.priority === "medium"
+                            ? "secondary"
+                            : "outline"
+                        }
+                        className="text-xs"
+                      >
+                        {task.priority || "medium"}
+                      </Badge>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-sm text-muted-foreground py-4">No pending tasks</p>
+              )}
             </div>
           </CardContent>
         </Card>
