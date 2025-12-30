@@ -143,24 +143,41 @@ export const SENTIMENT_KEYWORDS = {
  * Verify Slack request signature
  * https://api.slack.com/authentication/verifying-requests-from-slack
  */
-export function verifySlackSignature(
+export async function verifySlackSignature(
   signingSecret: string,
   timestamp: string,
   body: string,
   signature: string
-): boolean {
-  const crypto = require("crypto");
+): Promise<boolean> {
+  try {
+    // Check if timestamp is within 5 minutes
+    const time = Math.floor(Date.now() / 1000);
+    if (Math.abs(time - parseInt(timestamp)) > 300) {
+      return false;
+    }
 
-  // Check if timestamp is within 5 minutes
-  const time = Math.floor(Date.now() / 1000);
-  if (Math.abs(time - parseInt(timestamp)) > 300) {
+    const baseString = `v0:${timestamp}:${body}`;
+
+    // Use Web Crypto API for serverless compatibility
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(signingSecret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+
+    const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(baseString));
+    const hashArray = Array.from(new Uint8Array(signatureBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const mySignature = `v0=${hashHex}`;
+
+    return mySignature === signature;
+  } catch (error) {
+    console.error("Signature verification error:", error);
     return false;
   }
-
-  const baseString = `v0:${timestamp}:${body}`;
-  const mySignature = "v0=" + crypto.createHmac("sha256", signingSecret).update(baseString).digest("hex");
-
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(mySignature));
 }
 
 /**

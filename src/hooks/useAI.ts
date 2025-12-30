@@ -1,55 +1,49 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { useCallback, useState } from "react";
 
 /**
  * Hook for AI enrichment functionality
+ * Connects to Parallel.ai for real data enrichment
  */
 export function useContactEnrichment(contactId: Id<"contacts">) {
   const [isEnriching, setIsEnriching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const enrichmentStatus = useQuery(api.ai.getContactEnrichmentStatus, {
     contactId,
   });
 
-  const enrichContact = useMutation(api.ai.enrichContact);
+  // Use the Parallel.ai action for real enrichment
+  const enrichContactAction = useAction(api.parallel.enrichContact);
+  // Fallback mutation for marking as pending
+  const enrichContactMutation = useMutation(api.ai.enrichContact);
 
   const triggerEnrichment = useCallback(async () => {
     setIsEnriching(true);
+    setError(null);
     try {
       // First, mark as pending
-      await enrichContact({ contactId });
+      await enrichContactMutation({ contactId });
 
-      // In a real implementation, this would trigger an external API call
-      // For now, we'll simulate enrichment with placeholder data
-      const mockEnrichmentData = {
-        title: "Software Engineer",
-        location: "San Francisco, CA",
-        bio: "Experienced professional with expertise in technology.",
-        skills: ["JavaScript", "TypeScript", "React", "Node.js"],
-        company: {
-          name: "Tech Corp",
-          industry: "Technology",
-          size: "50-200",
-        },
-        confidence: 85,
-      };
+      // Call the real Parallel.ai enrichment action
+      const result = await enrichContactAction({ contactId });
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Update with enrichment data
-      await enrichContact({
-        contactId,
-        enrichmentData: mockEnrichmentData,
-      });
+      if (!result.success) {
+        setError(result.error ?? "Enrichment failed");
+        console.error("Enrichment failed:", result.error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
+      console.error("Enrichment error:", err);
     } finally {
       setIsEnriching(false);
     }
-  }, [contactId, enrichContact]);
+  }, [contactId, enrichContactAction, enrichContactMutation]);
 
   return {
     status: enrichmentStatus?.status ?? "not_enriched",
@@ -57,57 +51,57 @@ export function useContactEnrichment(contactId: Id<"contacts">) {
     enrichedAt: enrichmentStatus?.enrichedAt,
     aiScore: enrichmentStatus?.aiScore,
     isEnriching,
+    error,
     triggerEnrichment,
   };
 }
 
 /**
  * Hook for company enrichment functionality
+ * Connects to Parallel.ai for real data enrichment
  */
 export function useCompanyEnrichment(companyId: Id<"companies">) {
   const [isEnriching, setIsEnriching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const enrichmentStatus = useQuery(api.ai.getCompanyEnrichmentStatus, {
     companyId,
   });
 
-  const enrichCompany = useMutation(api.ai.enrichCompany);
+  // Use the Parallel.ai action for real enrichment
+  const enrichCompanyAction = useAction(api.parallel.enrichCompany);
+  // Fallback mutation for marking as pending
+  const enrichCompanyMutation = useMutation(api.ai.enrichCompany);
 
   const triggerEnrichment = useCallback(async () => {
     setIsEnriching(true);
+    setError(null);
     try {
-      await enrichCompany({ companyId });
+      // First, mark as pending
+      await enrichCompanyMutation({ companyId });
 
-      // Placeholder enrichment data
-      const mockEnrichmentData = {
-        description: "A leading technology company focused on innovation.",
-        industry: "Technology",
-        size: "100-500",
-        employeeCount: 250,
-        founded: 2015,
-        headquarters: "San Francisco, CA",
-        funding: "$50M Series B",
-        technologies: ["React", "Node.js", "AWS"],
-        keywords: ["SaaS", "Enterprise", "Cloud"],
-        confidence: 90,
-      };
+      // Call the real Parallel.ai enrichment action
+      const result = await enrichCompanyAction({ companyId });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      await enrichCompany({
-        companyId,
-        enrichmentData: mockEnrichmentData,
-      });
+      if (!result.success) {
+        setError(result.error ?? "Enrichment failed");
+        console.error("Enrichment failed:", result.error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
+      console.error("Enrichment error:", err);
     } finally {
       setIsEnriching(false);
     }
-  }, [companyId, enrichCompany]);
+  }, [companyId, enrichCompanyAction, enrichCompanyMutation]);
 
   return {
     status: enrichmentStatus?.status ?? "not_enriched",
     enrichmentData: enrichmentStatus?.enrichmentData,
     enrichedAt: enrichmentStatus?.enrichedAt,
     isEnriching,
+    error,
     triggerEnrichment,
   };
 }

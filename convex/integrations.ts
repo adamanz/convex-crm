@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 
 // ============================================================================
 // INTEGRATIONS - Query and Mutation Functions
@@ -462,9 +462,9 @@ export const disconnect = mutation({
 
 /**
  * Get raw credentials for server-side API calls
- * This should only be called from internal functions, not exposed to clients
+ * Internal only - cannot be called from frontend
  */
-export const getCredentials = query({
+export const getCredentials = internalQuery({
   args: {
     type: integrationTypes,
   },

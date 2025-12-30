@@ -1,0 +1,66 @@
+{
+    "display_information": {
+        "name": "Momentum",
+        "description": "AI-powered revenue intelligence from Slack signals",
+        "background_color": "#000000"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Momentum",
+            "always_online": true
+        },
+        "slash_commands": [
+            {
+                "command": "/momentum",
+                "url": "https://thesimple.co/api/slack/commands",
+                "description": "View and manage revenue signals",
+                "usage_hint": "[dashboard|signals|stats|help]",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "redirect_urls": [
+            "https://thesimple.co/api/slack/oauth/callback"
+        ],
+        "scopes": {
+            "bot": [
+                "app_mentions:read",
+                "channels:join",
+                "channels:read",
+                "channels:history",
+                "chat:write",
+                "commands",
+                "groups:read",
+                "groups:history",
+                "im:history",
+                "im:read",
+                "im:write",
+                "mpim:read",
+                "mpim:history",
+                "users:read",
+                "users:read.email",
+                "team:read"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "request_url": "https://thesimple.co/api/slack/events",
+            "bot_events": [
+                "app_mention",
+                "message.channels",
+                "message.groups",
+                "message.im",
+                "message.mpim"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://thesimple.co/api/slack/actions"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

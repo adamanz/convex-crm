@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Convex CRM
+
+A modern CRM application built with Next.js and Convex, featuring AI-powered revenue intelligence through Slack integration.
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Convex (real-time database + serverless functions)
+- **AI**: ElevenLabs (call summaries), keyword-based signal detection
+- **Integrations**: Slack (Momentum)
+- **Deployment**: Vercel
+
+## Features
+
+### Core CRM
+- Customer management
+- Deal/pipeline tracking
+- Contact management
+- Activity logging
+- Leaderboards with gamification (badges, streaks)
+
+### Momentum (Slack Integration) - In Development
+AI-powered revenue intelligence that monitors Slack channels for:
+- Expansion signals (growth, upgrades)
+- Risk signals (complaints, issues)
+- Buying intent (pricing, demos)
+- Churn indicators (competitor mentions)
+- Relationship changes (org changes)
+
+See `CLAUDE.md` for detailed Momentum implementation status.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- Convex account
+- Slack app (for Momentum)
 
+### Environment Variables
+
+Create `.env.local`:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Convex
+CONVEX_DEPLOYMENT=your-deployment
+NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
+
+# Slack (Momentum)
+NEXT_PUBLIC_SLACK_CLIENT_ID=
+SLACK_CLIENT_SECRET=
+SLACK_SIGNING_SECRET=
+SLACK_BOT_TOKEN=
+SLACK_APP_ID=
+
+# ElevenLabs (AI calls)
+ELEVENLABS_API_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependencies
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Start Convex dev server (in one terminal)
+npx convex dev
 
-## Learn More
+# Start Next.js dev server (in another terminal)
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/                    # Next.js App Router pages
+  components/
+    momentum/             # Slack signal components
+    ui/                   # shadcn/ui components
+  lib/
+    slack.ts              # Slack API utilities
+convex/
+  schema.ts               # Database schema
+  *.ts                    # Convex functions
+```
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deployed on Vercel at https://thesimple.co
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+vercel --prod
+```
+
+## Documentation
+
+- `CLAUDE.md` - Detailed context for AI assistants (project state, what's built, what's needed)
+- `SLACK_MANIFEST_MOMENTUM.json` - Slack app configuration

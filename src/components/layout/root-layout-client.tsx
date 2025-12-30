@@ -89,8 +89,9 @@ function RootLayoutClientContent({ children }: RootLayoutClientProps) {
             dangerouslySetInnerHTML={{
               __html: `
                 (function() {
+                  const agentId = "${process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID}".trim();
                   const container = document.createElement('div');
-                  container.innerHTML = '<elevenlabs-convai agent-id="${process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID}"></elevenlabs-convai>';
+                  container.innerHTML = '<elevenlabs-convai agent-id="' + agentId + '"></elevenlabs-convai>';
                   document.body.appendChild(container.firstChild);
                 })();
               `,

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
+import { action, internalAction, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
@@ -145,7 +145,7 @@ const companyEnrichmentSchema = {
 // ============================================================================
 
 async function getParallelApiKey(ctx: any): Promise<string | null> {
-  const integration = await ctx.runQuery(api.integrations.getCredentials, {
+  const integration = await ctx.runQuery(internal.integrations.getCredentials, {
     type: "parallel",
   });
   return integration?.credentials?.apiKey ?? null;

@@ -21,6 +21,7 @@ export function ConnectedContactEnrichment({
     enrichmentData,
     enrichedAt,
     isEnriching,
+    error,
     triggerEnrichment,
   } = useContactEnrichment(contactId);
 
@@ -52,7 +53,7 @@ export function ConnectedContactEnrichment({
       ? "enriched"
       : isEnriching || status === "pending"
         ? "pending"
-        : enrichmentData?.status === "failed"
+        : error || enrichmentData?.status === "failed"
           ? "failed"
           : "stale";
 
@@ -64,6 +65,7 @@ export function ConnectedContactEnrichment({
       confidence={enrichmentData?.confidence}
       onRefresh={triggerEnrichment}
       isRefreshing={isEnriching}
+      error={error ?? undefined}
       className={className}
     />
   );

@@ -34,6 +34,14 @@ import {
   Users,
   DollarSign,
   Trash2,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign as BuyingIntent,
+  Activity,
+  AlertCircle,
+  UserMinus,
+  Hash,
+  Slack,
 } from "lucide-react";
 import { cn, getInitials, formatDate, formatRelativeTime, formatCurrency } from "@/lib/utils";
 import { EditContactDialog } from "@/components/contacts/edit-contact-dialog";
@@ -99,8 +107,8 @@ export default function ContactDetailPage() {
       content: <DealsTab deals={contact.deals} />,
     },
     {
-      id: "messages",
-      label: "Messages",
+      id: "signals",
+      label: "Slack Signals",
       content: <MessagesTab contactId={contactId} />,
     },
     {
@@ -463,20 +471,98 @@ function DealsTab({ deals }: { deals: any[] }) {
   );
 }
 
-// Messages Tab
+// Messages Tab - Now shows Slack signals
 function MessagesTab({ contactId }: { contactId: Id<"contacts"> }) {
+  const signals = useQuery(api.signals.getSignalsByContact, { contactId, limit: 50 });
+
+  if (signals === undefined) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="animate-pulse text-sm text-zinc-500">Loading signals...</div>
+      </div>
+    );
+  }
+
+  if (!signals || signals.length === 0) {
+    return (
+      <EmptyTabState
+        icon={<Slack className="h-6 w-6 text-zinc-400" />}
+        title="No Slack signals yet"
+        description="When this contact mentions relevant topics in Slack, signals will appear here."
+      />
+    );
+  }
+
+  const signalTypeConfig: Record<string, { icon: typeof TrendingUp; color: string; bgColor: string }> = {
+    expansion: { icon: TrendingUp, color: "text-green-600", bgColor: "bg-green-100 dark:bg-green-900/20" },
+    risk: { icon: AlertTriangle, color: "text-amber-600", bgColor: "bg-amber-100 dark:bg-amber-900/20" },
+    buying_intent: { icon: DollarSign, color: "text-blue-600", bgColor: "bg-blue-100 dark:bg-blue-900/20" },
+    usage: { icon: Activity, color: "text-purple-600", bgColor: "bg-purple-100 dark:bg-purple-900/20" },
+    churn: { icon: AlertCircle, color: "text-red-600", bgColor: "bg-red-100 dark:bg-red-900/20" },
+    relationship: { icon: Users, color: "text-indigo-600", bgColor: "bg-indigo-100 dark:bg-indigo-900/20" },
+  };
+
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case "positive": return "bg-green-500";
+      case "negative": return "bg-red-500";
+      case "urgent": return "bg-orange-500";
+      default: return "bg-zinc-400";
+    }
+  };
+
   return (
-    <EmptyTabState
-      icon={<MessageSquare className="h-6 w-6 text-zinc-400" />}
-      title="No messages yet"
-      description="Start a conversation with this contact."
-      action={
-        <Button size="sm">
-          <MessageSquare className="h-4 w-4 mr-1.5" />
-          Send message
-        </Button>
-      }
-    />
+    <ScrollArea className="h-full">
+      <div className="p-6 space-y-3">
+        {signals.map((signal) => {
+          const config = signalTypeConfig[signal.type] || signalTypeConfig.expansion;
+          const Icon = config.icon;
+          return (
+            <div
+              key={signal._id}
+              className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-zinc-800/50 dark:bg-zinc-900"
+            >
+              <div className="flex items-start gap-3">
+                <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", config.bgColor)}>
+                  <Icon className={cn("h-4 w-4", config.color)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {signal.type.replace("_", " ")}
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {signal.confidence}% confidence
+                    </Badge>
+                    {signal.sentiment && signal.sentiment !== "neutral" && (
+                      <span className={cn("h-2 w-2 rounded-full", getSentimentColor(signal.sentiment))} />
+                    )}
+                    <span className="text-[11px] text-zinc-400 ml-auto">
+                      {formatRelativeTime(signal.createdAt)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[13px] text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                    {signal.text}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-400">
+                    <Hash className="h-3 w-3" />
+                    {signal.channelName}
+                    {signal.status && (
+                      <Badge
+                        variant={signal.status === "handled" ? "default" : signal.status === "dismissed" ? "secondary" : "outline"}
+                        className="text-[9px] ml-2"
+                      >
+                        {signal.status}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }
 

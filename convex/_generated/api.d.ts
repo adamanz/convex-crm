@@ -51,6 +51,8 @@ import type * as scheduler from "../scheduler.js";
 import type * as seed from "../seed.js";
 import type * as sendblue from "../sendblue.js";
 import type * as sequences from "../sequences.js";
+import type * as signals from "../signals.js";
+import type * as slackSync from "../slackSync.js";
 import type * as smartLists from "../smartLists.js";
 import type * as tags from "../tags.js";
 import type * as territories from "../territories.js";
@@ -110,6 +112,8 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   sendblue: typeof sendblue;
   sequences: typeof sequences;
+  signals: typeof signals;
+  slackSync: typeof slackSync;
   smartLists: typeof smartLists;
   tags: typeof tags;
   territories: typeof territories;

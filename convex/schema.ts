@@ -38,11 +38,13 @@ export default defineSchema({
     enrichedAt: v.optional(v.number()),
     enrichmentData: v.optional(v.any()),
     aiScore: v.optional(v.number()),
+    slackUserId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
     lastActivityAt: v.optional(v.number()),
   })
     .index("by_email", ["email"])
+    .index("by_slack_user", ["slackUserId"])
     .index("by_company", ["companyId"])
     .index("by_owner", ["ownerId"])
     .index("by_created", ["createdAt"])
@@ -1774,6 +1776,9 @@ export default defineSchema({
     channelId: v.id("sentinelChannels"),
     customerId: v.optional(v.id("sentinelCustomers")),
     sourceMessageId: v.optional(v.id("sentinelMessages")),
+    // CRM entity links
+    contactId: v.optional(v.id("contacts")),
+    companyId: v.optional(v.id("companies")),
     type: v.union(
       v.literal("expansion"),
       v.literal("risk"),
@@ -1827,7 +1832,9 @@ export default defineSchema({
     .index("by_channel", ["channelId"])
     .index("by_source_message", ["sourceMessageId"])
     .index("by_type_created", ["type", "createdAt"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_contact", ["contactId"])
+    .index("by_company", ["companyId"]),
 
   sentinelSyncJobs: defineTable({
     workspaceId: v.id("sentinelWorkspaces"),

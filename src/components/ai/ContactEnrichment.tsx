@@ -45,6 +45,7 @@ interface ContactEnrichmentProps {
   confidence?: number;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  error?: string;
   className?: string;
 }
 
@@ -88,6 +89,7 @@ export function ContactEnrichment({
   confidence,
   onRefresh,
   isRefreshing,
+  error,
   className,
 }: ContactEnrichmentProps) {
   const statusInfo = getStatusInfo(status);
@@ -194,6 +196,34 @@ export function ContactEnrichment({
             <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
               This usually takes a few seconds
             </p>
+          </div>
+        ) : status === "failed" ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-950">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            </div>
+            <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              Enrichment failed
+            </p>
+            {error && (
+              <p className="mt-1 max-w-[200px] text-xs text-red-500 dark:text-red-400">
+                {error}
+              </p>
+            )}
+            {onRefresh && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="mt-3"
+              >
+                <RefreshCw
+                  className={cn("mr-1.5 h-3.5 w-3.5", isRefreshing && "animate-spin")}
+                />
+                Try Again
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
